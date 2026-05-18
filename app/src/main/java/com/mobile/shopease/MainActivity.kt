@@ -13,6 +13,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.mobile.shopease.navigation.Screen
+import com.mobile.shopease.ui.auth.SignInScreen
+import com.mobile.shopease.ui.auth.SignUpScreen
 import com.mobile.shopease.ui.theme.ShopEaseTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,11 +28,39 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ShopEaseTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+                NavHost(
+                    navController = navController,
+                    startDestination = Screen.SignIn.route
+                ) {
+                    composable(Screen.SignIn.route) {
+                        SignInScreen(
+                            onNavigateToSignUp = { navController.navigate(Screen.SignUp.route) },
+                            onSignInSuccess = {
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(Screen.SignIn.route) { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+                    composable(Screen.SignUp.route) {
+                        SignUpScreen(
+                            onNavigateToSignIn = { navController.popBackStack() },
+                            onSignUpSuccess = {
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(Screen.SignIn.route) { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+                    composable(Screen.Home.route) {
+                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                            Greeting(
+                                name = "ShopEase User",
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -49,9 +83,3 @@ fun GreetingPreview() {
     }
 }
 
-// Think of this as your "Route Registry"
-sealed class Screen(val route: String) {
-    object Home : Screen("home_screen")
-    object Profile : Screen("profile_screen")
-    object Settings : Screen("settings_screen")
-}
