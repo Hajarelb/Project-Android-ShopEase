@@ -1,8 +1,26 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.android)
 }
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use(localProperties::load)
+}
+
+fun requireLocalProperty(name: String): String {
+    return localProperties.getProperty(name)?.takeIf { it.isNotBlank() }
+        ?: error("Missing $name in local.properties")
+}
+
+val supabaseUrl = requireLocalProperty("SUPABASE_URL")
+val supabaseAnonKey = requireLocalProperty("SUPABASE_ANON_KEY")
+val supabaseAuthScheme = "com.mobile.shopease"
+val supabaseAuthHost = "auth"
 
 android {
     namespace = "com.mobile.shopease"
@@ -20,6 +38,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
+        buildConfigField("String", "SUPABASE_AUTH_SCHEME", "\"$supabaseAuthScheme\"")
+        buildConfigField("String", "SUPABASE_AUTH_HOST", "\"$supabaseAuthHost\"")
+
+        manifestPlaceholders += mapOf(
+            "supabaseAuthScheme" to supabaseAuthScheme,
+            "supabaseAuthHost" to supabaseAuthHost
+        )
     }
 
     buildTypes {
@@ -37,6 +65,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     kotlinOptions {
         jvmTarget = "11"

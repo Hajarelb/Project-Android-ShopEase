@@ -1,5 +1,6 @@
 package com.mobile.shopease
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,16 +17,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.mobile.shopease.data.remote.SupabaseClient
 import com.mobile.shopease.navigation.Screen
 import com.mobile.shopease.ui.auth.SignInScreen
 import com.mobile.shopease.ui.auth.SignUpScreen
 import com.mobile.shopease.ui.theme.ShopEaseTheme
+import io.github.jan.supabase.gotrue.handleDeeplinks
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        SupabaseClient.client.handleDeeplinks(intent)
         setContent {
             ShopEaseTheme {
                 val navController = rememberNavController()
@@ -65,6 +69,11 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        SupabaseClient.client.handleDeeplinks(intent)
+    }
 }
 
 @Composable
@@ -82,4 +91,3 @@ fun GreetingPreview() {
         Greeting("Android")
     }
 }
-

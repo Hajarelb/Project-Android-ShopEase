@@ -82,4 +82,30 @@ class AuthViewModel : ViewModel() {//Creates authentication ViewModel. This clas
             }
         }
     }
+
+    fun signInWithGoogle() {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                repository.signInWithGoogle()
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(
+                    e.localizedMessage ?: "Google sign-in failed"
+                )
+            }
+        }
+    }
+
+    fun signInWithFacebook() {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                repository.signInWithFacebook()
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(
+                    e.localizedMessage ?: "Facebook sign-in failed"
+                )
+            }
+        }
+    }
 }

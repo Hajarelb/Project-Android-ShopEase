@@ -171,14 +171,14 @@ fun SignUpScreen(
                     SocialLoginButton(
                         text = "Google",
                         iconRes = R.drawable.ic_google,
-                        onClick = {}
+                        onClick = { viewModel.signInWithGoogle() }
                     )
                 }
                 Box(modifier = Modifier.weight(1f)) {
                     SocialLoginButton(
                         text = "Facebook",
                         iconRes = R.drawable.ic_facebook,
-                        onClick = {}
+                        onClick = { viewModel.signInWithFacebook() }
                     )
                 }
             }
