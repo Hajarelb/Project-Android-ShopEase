@@ -123,7 +123,7 @@ class ProductRepository {
 suspend fun getSavedProductIds(): Set<String> {
     val userId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return emptySet()
     val items = SupabaseClient.client.postgrest["wishlists"]
-        .select() // select ALL columns, not just product_id
+        .select() // select ALL columns, not just product_id to prevent serialization issues
         {
             filter {
                 eq("user_id", userId)
