@@ -13,6 +13,8 @@ object SupabaseClient {
         install(Auth) {
             host = BuildConfig.SUPABASE_AUTH_HOST
             scheme = BuildConfig.SUPABASE_AUTH_SCHEME
+            autoSaveToStorage = true
+            autoLoadFromStorage = true
         }
         install(Postgrest)
     }
