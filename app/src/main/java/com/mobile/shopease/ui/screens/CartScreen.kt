@@ -11,6 +11,9 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,10 +29,14 @@ import com.mobile.shopease.data.tables.CartItem
 fun CartScreen(
     viewModel: CartViewModel = viewModel()
 ) {
-    val uiState = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadCart()
+    }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Mon Panier") }) }
+        topBar = { TopAppBar(title = { Text("My Cart") }) }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -55,7 +62,7 @@ fun CartScreen(
                             modifier = Modifier.size(64.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Votre panier est vide")
+                        Text("Your cart is empty")
                     }
                 }
 
@@ -78,7 +85,7 @@ fun CartScreen(
                             }
                         }
 
-                        // Bandeau total + bouton commander
+                        // Total banner + checkout button
                         Surface(shadowElevation = 8.dp) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Row(
@@ -86,11 +93,11 @@ fun CartScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        "Total (${uiState.itemCount} articles)",
+                                        "Total (${uiState.itemCount} items)",
                                         style = MaterialTheme.typography.titleMedium
                                     )
                                     Text(
-                                        "${"%.2f".format(uiState.total)} €",
+                                        "$${"%.2f".format(uiState.total)}",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -100,7 +107,7 @@ fun CartScreen(
                                     onClick = { /* TODO: brancher sur Checkout plus tard */ },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text("Passer la commande")
+                                    Text("Checkout")
                                 }
                             }
                         }
@@ -143,7 +150,7 @@ private fun CartItemRow(
                     maxLines = 1
                 )
                 Text(
-                    text = "${item.products?.price ?: 0.0} €",
+                    text = "$${item.products?.price ?: 0.0}",
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -151,16 +158,16 @@ private fun CartItemRow(
             // Contrôles de quantité
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onDecrease) {
-                    Icon(Icons.Default.Remove, contentDescription = "Diminuer")
+                    Icon(Icons.Default.Remove, contentDescription = "Decrease")
                 }
                 Text(text = "${item.quantity}")
                 IconButton(onClick = onIncrease) {
-                    Icon(Icons.Default.Add, contentDescription = "Augmenter")
+                    Icon(Icons.Default.Add, contentDescription = "Increase")
                 }
             }
 
             IconButton(onClick = onRemove) {
-                Icon(Icons.Default.Delete, contentDescription = "Supprimer")
+                Icon(Icons.Default.Delete, contentDescription = "Remove")
             }
         }
     }

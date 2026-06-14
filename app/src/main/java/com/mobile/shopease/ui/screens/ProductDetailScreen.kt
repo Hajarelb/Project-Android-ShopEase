@@ -35,13 +35,13 @@ fun ProductDetailScreen(
     cartViewModel: CartViewModel = viewModel(),
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
-    val cartState = cartViewModel.uiState
+    val cartState by cartViewModel.uiState.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(productId) { viewModel.loadProductDetail(productId, currentUserId) }
 
-    // Affiche un message (succès ou erreur) lié au panier, puis le nettoie
+    // Display cart-related message (success or error), then clear it
     LaunchedEffect(cartState.message, cartState.error) {
         cartState.message?.let {
             snackbarHostState.showSnackbar(it)
@@ -267,7 +267,7 @@ private fun AddToCartBar(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text(if (inStock) "Ajouter au panier" else "Rupture de stock")
+                    Text(if (inStock) "Add to Cart" else "Out of Stock")
                 }
             }
         }

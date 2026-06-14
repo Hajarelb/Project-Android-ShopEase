@@ -1,12 +1,13 @@
 package com.mobile.shopease.ui.screens
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mobile.shopease.data.repository.CartRepository
 import com.mobile.shopease.data.tables.CartItem
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class CartUiState(
@@ -27,37 +28,35 @@ class CartViewModel : ViewModel() {
 
     private val repository = CartRepository()
 
-    var uiState by mutableStateOf(CartUiState())
-        private set
-
-    init {
-        loadCart()
-    }
+    private val _uiState = MutableStateFlow(CartUiState())
+    val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
 
     fun loadCart() {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true, error = null)
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val items = repository.getCartItems()
-                uiState = uiState.copy(items = items, isLoading = false)
+                _uiState.update { it.copy(items = items, isLoading = false) }
             } catch (e: Exception) {
-                uiState = uiState.copy(isLoading = false, error = e.message)
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }
 
     fun addToCart(productId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isAddingToCart = true, error = null)
+            _uiState.update { it.copy(isAddingToCart = true, error = null) }
             try {
                 repository.addToCart(productId)
-                uiState = uiState.copy(
-                    isAddingToCart = false,
-                    message = "Produit ajouté au panier"
-                )
+                _uiState.update {
+                    it.copy(
+                        isAddingToCart = false,
+                        message = "Product added to cart"
+                    )
+                }
                 loadCart()
             } catch (e: Exception) {
-                uiState = uiState.copy(isAddingToCart = false, error = e.message)
+                _uiState.update { it.copy(isAddingToCart = false, error = e.message) }
             }
         }
     }
@@ -68,7 +67,7 @@ class CartViewModel : ViewModel() {
                 repository.updateQuantity(item.productId, item.quantity + 1)
                 loadCart()
             } catch (e: Exception) {
-                uiState = uiState.copy(error = e.message)
+                _uiState.update { it.copy(error = e.message) }
             }
         }
     }
@@ -83,7 +82,7 @@ class CartViewModel : ViewModel() {
                 }
                 loadCart()
             } catch (e: Exception) {
-                uiState = uiState.copy(error = e.message)
+                _uiState.update { it.copy(error = e.message) }
             }
         }
     }
@@ -94,13 +93,13 @@ class CartViewModel : ViewModel() {
                 repository.removeFromCart(item.productId)
                 loadCart()
             } catch (e: Exception) {
-                uiState = uiState.copy(error = e.message)
+                _uiState.update { it.copy(error = e.message) }
             }
         }
     }
 
     /** Réinitialise message/erreur après affichage (ex: Snackbar) */
     fun clearFeedback() {
-        uiState = uiState.copy(message = null, error = null)
+        _uiState.update { it.copy(message = null, error = null) }
     }
 }

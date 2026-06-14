@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.mobile.shopease.ui.auth.SignInScreen
 import com.mobile.shopease.ui.auth.SignUpScreen
+import com.mobile.shopease.ui.screens.CartScreen
 import com.mobile.shopease.ui.screens.ProductDetailScreen
 import com.mobile.shopease.ui.screens.ProductListScreen
 import com.mobile.shopease.ui.screens.WishlistScreen
@@ -76,6 +77,10 @@ fun NavGraph(startDestination: String = Screen.SignIn.route) {
                 },
                 onBack = { navController.popBackStack() }
             )
+        }
+
+        composable(Screen.Cart.route) {
+            CartScreen()
         }
     }
 }
