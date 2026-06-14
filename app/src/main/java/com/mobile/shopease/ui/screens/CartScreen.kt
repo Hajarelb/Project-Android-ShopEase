@@ -2,6 +2,8 @@ package com.mobile.shopease.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -160,6 +162,73 @@ fun CartScreen(
                                         )
                                         Text("Pay Online (Simulated)")
                                     }
+
+                                    if (uiState.paymentMethod == "online") {
+                                        Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+                                            Text("Card details", style = MaterialTheme.typography.titleSmall)
+                                            Spacer(modifier = Modifier.height(8.dp))
+
+                                            OutlinedTextField(
+                                                value = uiState.paymentInfo.cardholderName,
+                                                onValueChange = {
+                                                    viewModel.updatePaymentInfo(uiState.paymentInfo.copy(cardholderName = it))
+                                                },
+                                                label = { Text("Cardholder name") },
+                                                singleLine = true,
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+
+                                            Spacer(modifier = Modifier.height(8.dp))
+
+                                            OutlinedTextField(
+                                                value = uiState.paymentInfo.cardNumber,
+                                                onValueChange = {
+                                                    if (it.length <= 16 && it.all { c -> c.isDigit() }) {
+                                                        viewModel.updatePaymentInfo(uiState.paymentInfo.copy(cardNumber = it))
+                                                    }
+                                                },
+                                                label = { Text("Card number") },
+                                                singleLine = true,
+                                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+
+                                            Spacer(modifier = Modifier.height(8.dp))
+
+                                            Row(modifier = Modifier.fillMaxWidth()) {
+                                                OutlinedTextField(
+                                                    value = uiState.paymentInfo.expiryDate,
+                                                    onValueChange = {
+                                                        if (it.length <= 5) {
+                                                            viewModel.updatePaymentInfo(uiState.paymentInfo.copy(expiryDate = it))
+                                                        }
+                                                    },
+                                                    label = { Text("MM/YY") },
+                                                    singleLine = true,
+                                                    modifier = Modifier.weight(1f),
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+
+                                                Spacer(modifier = Modifier.width(8.dp))
+
+                                                OutlinedTextField(
+                                                    value = uiState.paymentInfo.cvv,
+                                                    onValueChange = {
+                                                        if (it.length <= 3 && it.all { c -> c.isDigit() }) {
+                                                            viewModel.updatePaymentInfo(uiState.paymentInfo.copy(cvv = it))
+                                                        }
+                                                    },
+                                                    label = { Text("CVV") },
+                                                    singleLine = true,
+                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                                    modifier = Modifier.weight(1f),
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -195,7 +264,7 @@ fun CartScreen(
                                 Button(
                                     onClick = { viewModel.placeOrder() },
                                     modifier = Modifier.fillMaxWidth(),
-                                    enabled = uiState.items.isNotEmpty() && !uiState.isPlacingOrder
+                                    enabled = uiState.items.isNotEmpty() && !uiState.isPlacingOrder && uiState.isPaymentInfoValid
                                 ) {
                                     if (uiState.isPlacingOrder) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
