@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.mobile.shopease.data.repository.CartRepository
 import com.mobile.shopease.data.repository.OrderRepository
 import com.mobile.shopease.data.tables.CartItem
+import com.mobile.shopease.data.tables.PaymentInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ data class CartUiState(
     val appliedPromoCode: String? = null,
     val discountPercent: Double = 0.0,
     val paymentMethod: String = "cod", // "cod" or "online"
+    val paymentInfo: PaymentInfo = PaymentInfo(),
     val error: String? = null,
     val message: String? = null
 ) {
@@ -32,6 +34,14 @@ data class CartUiState(
 
     val finalTotal: Double
         get() = total * (1 - discountPercent / 100)
+
+    val isPaymentInfoValid: Boolean
+        get() = paymentMethod == "cod" || (
+                paymentInfo.cardholderName.isNotBlank() &&
+                paymentInfo.cardNumber.replace(" ", "").length == 16 &&
+                paymentInfo.expiryDate.length == 5 &&
+                paymentInfo.cvv.length == 3
+        )
 }
 
 class CartViewModel : ViewModel() {
@@ -111,6 +121,10 @@ class CartViewModel : ViewModel() {
 
     fun setPaymentMethod(method: String) {
         _uiState.update { it.copy(paymentMethod = method) }
+    }
+
+    fun updatePaymentInfo(info: PaymentInfo) {
+        _uiState.update { it.copy(paymentInfo = info) }
     }
 
     fun applyPromoCode(code: String) {
