@@ -32,12 +32,29 @@ fun ProductDetailScreen(
     currentUserId: String?,
     onBack: () -> Unit,
     viewModel: ProductViewModel = viewModel(),
+    cartViewModel: CartViewModel = viewModel(),
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
+    val cartState = cartViewModel.uiState
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(productId) { viewModel.loadProductDetail(productId, currentUserId) }
 
+    // Affiche un message (succès ou erreur) lié au panier, puis le nettoie
+    LaunchedEffect(cartState.message, cartState.error) {
+        cartState.message?.let {
+            snackbarHostState.showSnackbar(it)
+            cartViewModel.clearFeedback()
+        }
+        cartState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            cartViewModel.clearFeedback()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(state.product?.name ?: "Product") },
@@ -58,6 +75,16 @@ fun ProductDetailScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            state.product?.let { product ->
+                AddToCartBar(
+                    price = product.price,
+                    inStock = product.stockQuantity > 0,
+                    isAdding = cartState.isAddingToCart,
+                    onAddToCart = { cartViewModel.addToCart(product.id) }
+                )
+            }
         }
     ) { padding ->
         if (state.isLoading) {
@@ -209,6 +236,45 @@ fun ProductDetailScreen(
 }
 
 @Composable
+private fun AddToCartBar(
+    price: Double,
+    inStock: Boolean,
+    isAdding: Boolean,
+    onAddToCart: () -> Unit,
+) {
+    Surface(shadowElevation = 8.dp) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "$%.2f".format(price),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Button(
+                onClick = onAddToCart,
+                enabled = inStock && !isAdding
+            ) {
+                if (isAdding) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(if (inStock) "Ajouter au panier" else "Rupture de stock")
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun AddReviewForm(
     isSubmitting: Boolean,
     onSubmit: (Int, String) -> Unit,
@@ -221,7 +287,6 @@ private fun AddReviewForm(
         Column(modifier = Modifier.padding(12.dp)) {
             Text("Write a Review", fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
-            // Star picker
             Row {
                 repeat(5) { i ->
                     IconButton(onClick = { rating = i + 1 }, modifier = Modifier.size(36.dp)) {
