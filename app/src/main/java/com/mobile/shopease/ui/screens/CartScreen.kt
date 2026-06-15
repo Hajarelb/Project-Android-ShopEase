@@ -1,9 +1,6 @@
 package com.mobile.shopease.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,7 +10,10 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,30 +27,46 @@ import com.mobile.shopease.data.tables.CartItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
-    viewModel: CartViewModel = viewModel()
+    viewModel: CartViewModel = viewModel(),
+    onProceedToCheckout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
-    var promoInput by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.loadCart()
     }
 
-    LaunchedEffect(uiState.message, uiState.error) {
-        uiState.message?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearFeedback()
-        }
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearFeedback()
-        }
-    }
-
     Scaffold(
         topBar = { TopAppBar(title = { Text("My Cart") }) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        bottomBar = {
+            if (uiState.items.isNotEmpty()) {
+                Surface(shadowElevation = 8.dp) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Total (${uiState.itemCount} items)",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                "$${"%.2f".format(uiState.total)}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = onProceedToCheckout,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Proceed to Checkout")
+                        }
+                    }
+                }
+            }
+        }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -81,206 +97,18 @@ fun CartScreen(
                 }
 
                 else -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(uiState.items) { item ->
-                                CartItemRow(
-                                    item = item,
-                                    onIncrease = { viewModel.increaseQuantity(item) },
-                                    onDecrease = { viewModel.decreaseQuantity(item) },
-                                    onRemove = { viewModel.removeItem(item) }
-                                )
-                            }
-
-                            item {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                                // Promo code section
-                                Text("Promo Code", style = MaterialTheme.typography.titleSmall)
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    OutlinedTextField(
-                                        value = promoInput,
-                                        onValueChange = { promoInput = it },
-                                        label = { Text("Enter code") },
-                                        modifier = Modifier.weight(1f),
-                                        singleLine = true,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Button(
-                                        onClick = { viewModel.applyPromoCode(promoInput) },
-                                        enabled = promoInput.isNotBlank() && !uiState.isApplyingPromo,
-                                        shape = RoundedCornerShape(8.dp)
-                                    ) {
-                                        if (uiState.isApplyingPromo) {
-                                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                                        } else {
-                                            Text("Apply")
-                                        }
-                                    }
-                                }
-
-                                if (uiState.discountPercent > 0) {
-                                    Text(
-                                        "Discount applied: -${uiState.discountPercent.toInt()}% (${uiState.appliedPromoCode})",
-                                        color = MaterialTheme.colorScheme.primary,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                // Payment method section
-                                Text("Payment Method", style = MaterialTheme.typography.titleSmall)
-                                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth().clickable { viewModel.setPaymentMethod("cod") }
-                                    ) {
-                                        RadioButton(
-                                            selected = uiState.paymentMethod == "cod",
-                                            onClick = { viewModel.setPaymentMethod("cod") }
-                                        )
-                                        Text("Cash on Delivery")
-                                    }
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth().clickable { viewModel.setPaymentMethod("online") }
-                                    ) {
-                                        RadioButton(
-                                            selected = uiState.paymentMethod == "online",
-                                            onClick = { viewModel.setPaymentMethod("online") }
-                                        )
-                                        Text("Pay Online (Simulated)")
-                                    }
-
-                                    if (uiState.paymentMethod == "online") {
-                                        Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                                            Text("Card details", style = MaterialTheme.typography.titleSmall)
-                                            Spacer(modifier = Modifier.height(8.dp))
-
-                                            OutlinedTextField(
-                                                value = uiState.paymentInfo.cardholderName,
-                                                onValueChange = {
-                                                    viewModel.updatePaymentInfo(uiState.paymentInfo.copy(cardholderName = it))
-                                                },
-                                                label = { Text("Cardholder name") },
-                                                singleLine = true,
-                                                modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(8.dp)
-                                            )
-
-                                            Spacer(modifier = Modifier.height(8.dp))
-
-                                            OutlinedTextField(
-                                                value = uiState.paymentInfo.cardNumber,
-                                                onValueChange = {
-                                                    if (it.length <= 16 && it.all { c -> c.isDigit() }) {
-                                                        viewModel.updatePaymentInfo(uiState.paymentInfo.copy(cardNumber = it))
-                                                    }
-                                                },
-                                                label = { Text("Card number") },
-                                                singleLine = true,
-                                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                                modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(8.dp)
-                                            )
-
-                                            Spacer(modifier = Modifier.height(8.dp))
-
-                                            Row(modifier = Modifier.fillMaxWidth()) {
-                                                OutlinedTextField(
-                                                    value = uiState.paymentInfo.expiryDate,
-                                                    onValueChange = {
-                                                        if (it.length <= 5) {
-                                                            viewModel.updatePaymentInfo(uiState.paymentInfo.copy(expiryDate = it))
-                                                        }
-                                                    },
-                                                    label = { Text("MM/YY") },
-                                                    singleLine = true,
-                                                    modifier = Modifier.weight(1f),
-                                                    shape = RoundedCornerShape(8.dp)
-                                                )
-
-                                                Spacer(modifier = Modifier.width(8.dp))
-
-                                                OutlinedTextField(
-                                                    value = uiState.paymentInfo.cvv,
-                                                    onValueChange = {
-                                                        if (it.length <= 3 && it.all { c -> c.isDigit() }) {
-                                                            viewModel.updatePaymentInfo(uiState.paymentInfo.copy(cvv = it))
-                                                        }
-                                                    },
-                                                    label = { Text("CVV") },
-                                                    singleLine = true,
-                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                                    modifier = Modifier.weight(1f),
-                                                    shape = RoundedCornerShape(8.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Total banner + checkout button
-                        Surface(shadowElevation = 8.dp) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column {
-                                        Text(
-                                            "Total (${uiState.itemCount} items)",
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                        if (uiState.discountPercent > 0) {
-                                            Text(
-                                                "Original: $${"%.2f".format(uiState.total)}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough
-                                            )
-                                        }
-                                    }
-                                    Text(
-                                        "$${"%.2f".format(uiState.finalTotal)}",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Button(
-                                    onClick = { viewModel.placeOrder() },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    enabled = uiState.items.isNotEmpty() && !uiState.isPlacingOrder && uiState.isPaymentInfoValid
-                                ) {
-                                    if (uiState.isPlacingOrder) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(20.dp),
-                                                strokeWidth = 2.dp,
-                                                color = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(if (uiState.paymentMethod == "online") "Processing payment..." else "Placing order...")
-                                        }
-                                    } else {
-                                        Text("Place Order")
-                                    }
-                                }
-                            }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(uiState.items) { item ->
+                            CartItemRow(
+                                item = item,
+                                onIncrease = { viewModel.increaseQuantity(item) },
+                                onDecrease = { viewModel.decreaseQuantity(item) },
+                                onRemove = { viewModel.removeItem(item) }
+                            )
                         }
                     }
                 }
