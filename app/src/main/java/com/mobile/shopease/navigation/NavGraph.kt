@@ -1,25 +1,30 @@
 package com.mobile.shopease.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.mobile.shopease.data.remote.SupabaseClient
 import com.mobile.shopease.ui.auth.SignInScreen
 import com.mobile.shopease.ui.auth.SignUpScreen
-import com.mobile.shopease.ui.screens.CartScreen
-import com.mobile.shopease.ui.screens.ProductDetailScreen
-import com.mobile.shopease.ui.screens.ProductListScreen
-import com.mobile.shopease.ui.screens.WishlistScreen
+import com.mobile.shopease.ui.screens.*
+import io.github.jan.supabase.gotrue.auth
 
 @Composable
-fun NavGraph(startDestination: String = Screen.SignIn.route) {
-    val navController = rememberNavController()
-
+fun NavGraph(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    startDestination: String = Screen.SignIn.route
+) {
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination,
+        modifier = modifier
     ) {
         composable(Screen.SignIn.route) {
             SignInScreen(
@@ -65,7 +70,7 @@ fun NavGraph(startDestination: String = Screen.SignIn.route) {
             val productId = backStackEntry.arguments?.getString("productId") ?: return@composable
             ProductDetailScreen(
                 productId = productId,
-                currentUserId = null, // replace with: SupabaseClient.client.auth.currentUserOrNull()?.id
+                currentUserId = SupabaseClient.client.auth.currentUserOrNull()?.id,
                 onBack = { navController.popBackStack() }
             )
         }
@@ -80,7 +85,35 @@ fun NavGraph(startDestination: String = Screen.SignIn.route) {
         }
 
         composable(Screen.Cart.route) {
-            CartScreen()
+            val cartViewModel: CartViewModel = viewModel()
+            CartScreen(
+                viewModel = cartViewModel,
+                onProceedToCheckout = { navController.navigate(Screen.Checkout.route) }
+            )
+        }
+
+        composable(Screen.Checkout.route) {
+            val parentEntry = remember(it) {
+                navController.getBackStackEntry(Screen.Cart.route)
+            }
+            val cartViewModel: CartViewModel = viewModel(parentEntry)
+            CheckoutScreen(
+                cartViewModel = cartViewModel,
+                onOrderPlaced = {
+                    navController.popBackStack(Screen.ProductList.route, inclusive = false)
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                onSignOut = {
+                    navController.navigate(Screen.SignIn.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
