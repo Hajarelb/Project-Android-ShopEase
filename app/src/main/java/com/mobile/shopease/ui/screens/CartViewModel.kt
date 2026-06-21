@@ -6,6 +6,7 @@ import com.mobile.shopease.data.repository.CartRepository
 import com.mobile.shopease.data.repository.OrderRepository
 import com.mobile.shopease.data.tables.CartItem
 import com.mobile.shopease.data.tables.PaymentInfo
+import com.mobile.shopease.data.tables.ShippingInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +23,7 @@ data class CartUiState(
     val appliedPromoCode: String? = null,
     val discountPercent: Double = 0.0,
     val paymentMethod: String = "cod", // "cod" or "online"
+    val shippingInfo: ShippingInfo = ShippingInfo(),
     val paymentInfo: PaymentInfo = PaymentInfo(),
     val error: String? = null,
     val message: String? = null
@@ -35,6 +37,11 @@ data class CartUiState(
     val finalTotal: Double
         get() = total * (1 - discountPercent / 100)
 
+    val isShippingInfoValid: Boolean
+        get() = shippingInfo.fullName.isNotBlank() &&
+                shippingInfo.phoneNumber.length >= 8 &&
+                shippingInfo.address.isNotBlank()
+
     val isPaymentInfoValid: Boolean
         get() = paymentMethod == "cod" || (
                 paymentInfo.cardholderName.isNotBlank() &&
@@ -42,6 +49,9 @@ data class CartUiState(
                 paymentInfo.expiryDate.length == 5 &&
                 paymentInfo.cvv.length == 3
         )
+
+    val canPlaceOrder: Boolean
+        get() = items.isNotEmpty() && isShippingInfoValid && isPaymentInfoValid && !isPlacingOrder
 }
 
 class CartViewModel : ViewModel() {
@@ -121,6 +131,10 @@ class CartViewModel : ViewModel() {
 
     fun setPaymentMethod(method: String) {
         _uiState.update { it.copy(paymentMethod = method) }
+    }
+
+    fun updateShippingInfo(info: ShippingInfo) {
+        _uiState.update { it.copy(shippingInfo = info) }
     }
 
     fun updatePaymentInfo(info: PaymentInfo) {
