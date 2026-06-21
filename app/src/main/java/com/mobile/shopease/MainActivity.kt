@@ -23,6 +23,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -45,6 +47,7 @@ import com.mobile.shopease.navigation.Screen
 import com.mobile.shopease.ui.auth.SignInScreen
 import com.mobile.shopease.ui.auth.SignUpScreen
 import com.mobile.shopease.ui.screens.CartScreen
+import com.mobile.shopease.ui.screens.CheckoutScreen
 import com.mobile.shopease.ui.screens.ProductDetailScreen
 import com.mobile.shopease.ui.screens.ProductListScreen
 import com.mobile.shopease.ui.screens.ProfileScreen
@@ -155,81 +158,11 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     ) { innerPadding ->
-                        NavHost(
+                        com.mobile.shopease.navigation.NavGraph(
                             navController = navController,
                             startDestination = startDestination,
                             modifier = Modifier.padding(innerPadding)
-                        ) {
-                            // ── Auth screens (no bottom bar) ──────────────
-                            composable(Screen.SignIn.route) {
-                                SignInScreen(
-                                    onNavigateToSignUp = { navController.navigate(Screen.SignUp.route) },
-                                    onSignInSuccess = {
-                                        navController.navigate(Screen.ProductList.route) {
-                                            popUpTo(Screen.SignIn.route) { inclusive = true }
-                                        }
-                                    }
-                                )
-                            }
-                            composable(Screen.SignUp.route) {
-                                SignUpScreen(
-                                    onNavigateToSignIn = { navController.popBackStack() },
-                                    onSignUpSuccess = {
-                                        navController.navigate(Screen.ProductList.route) {
-                                            popUpTo(Screen.SignIn.route) { inclusive = true }
-                                        }
-                                    }
-                                )
-                            }
-
-                            // ── Main tabs (bottom bar visible) ────────────
-                            composable(Screen.ProductList.route) {
-                                ProductListScreen(
-                                    onProductClick = { id ->
-                                        navController.navigate(Screen.ProductDetail.createRoute(id))
-                                    },
-                                    onWishlistClick = {
-                                        navController.navigate(Screen.Wishlist.route)
-                                    }
-                                )
-                            }
-                            composable(Screen.Wishlist.route) {
-                                WishlistScreen(
-                                    onProductClick = { id ->
-                                        navController.navigate(Screen.ProductDetail.createRoute(id))
-                                    },
-                                    onBack = {
-                                        navController.popBackStack()
-                                    }
-                                )
-                            }
-                            composable(Screen.Cart.route) {
-                                CartScreen()
-                            }
-                            composable(Screen.Profile.route) {
-                                ProfileScreen(
-                                    onSignOut = {
-                                        navController.navigate(Screen.SignIn.route) {
-                                            popUpTo(0) { inclusive = true }
-                                        }
-                                    }
-                                )
-                            }
-
-                            // ── Detail screen (no bottom bar) ─────────────
-                            composable(
-                                route = Screen.ProductDetail.route,
-                                arguments = listOf(navArgument("productId") { type = NavType.StringType })
-                            ) { backStackEntry ->
-                                val productId = backStackEntry.arguments?.getString("productId")
-                                    ?: return@composable
-                                ProductDetailScreen(
-                                    productId = productId,
-                                    currentUserId = SupabaseClient.client.auth.currentUserOrNull()?.id,
-                                    onBack = { navController.popBackStack() }
-                                )
-                            }
-                        }
+                        )
                     }
                 }
             }
