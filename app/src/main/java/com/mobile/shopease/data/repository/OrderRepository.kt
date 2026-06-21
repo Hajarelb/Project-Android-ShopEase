@@ -47,4 +47,16 @@ class OrderRepository {
 
         return orderId
     }
+
+    suspend fun getUserOrders(): List<Order> {
+        val userId = currentUserId()
+        return SupabaseClient.client.postgrest["orders"]
+            .select {
+                filter {
+                    eq("user_id", userId)
+                }
+                order("created_at", order = io.github.jan.supabase.postgrest.query.Order.DESCENDING)
+            }
+            .decodeList<Order>()
+    }
 }

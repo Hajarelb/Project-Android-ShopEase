@@ -112,8 +112,18 @@ fun NavGraph(
                     navController.navigate(Screen.SignIn.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                onNavigateToMyOrders = { navController.navigate(Screen.MyOrders.route) },
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
             )
+        }
+
+        composable(Screen.MyOrders.route) {
+            MyOrdersScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }
