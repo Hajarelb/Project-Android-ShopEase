@@ -3,17 +3,26 @@ package com.mobile.shopease.ui.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mobile.shopease.data.repository.CartRepository
+import com.mobile.shopease.data.repository.OrderRepository
 import com.mobile.shopease.data.tables.CartItem
+import com.mobile.shopease.data.tables.PaymentInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 data class CartUiState(
     val items: List<CartItem> = emptyList(),
     val isLoading: Boolean = false,
     val isAddingToCart: Boolean = false,
+    val isPlacingOrder: Boolean = false,
+    val isApplyingPromo: Boolean = false,
+    val appliedPromoCode: String? = null,
+    val discountPercent: Double = 0.0,
+    val paymentMethod: String = "cod", // "cod" or "online"
+    val paymentInfo: PaymentInfo = PaymentInfo(),
     val error: String? = null,
     val message: String? = null
 ) {
@@ -22,11 +31,23 @@ data class CartUiState(
 
     val itemCount: Int
         get() = items.sumOf { it.quantity }
+
+    val finalTotal: Double
+        get() = total * (1 - discountPercent / 100)
+
+    val isPaymentInfoValid: Boolean
+        get() = paymentMethod == "cod" || (
+                paymentInfo.cardholderName.isNotBlank() &&
+                paymentInfo.cardNumber.replace(" ", "").length == 16 &&
+                paymentInfo.expiryDate.length == 5 &&
+                paymentInfo.cvv.length == 3
+        )
 }
 
 class CartViewModel : ViewModel() {
 
-    private val repository = CartRepository()
+    private val cartRepository = CartRepository()
+    private val orderRepository = OrderRepository()
 
     private val _uiState = MutableStateFlow(CartUiState())
     val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
@@ -35,7 +56,7 @@ class CartViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val items = repository.getCartItems()
+                val items = cartRepository.getCartItems()
                 _uiState.update { it.copy(items = items, isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -47,7 +68,7 @@ class CartViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isAddingToCart = true, error = null) }
             try {
-                repository.addToCart(productId)
+                cartRepository.addToCart(productId)
                 _uiState.update {
                     it.copy(
                         isAddingToCart = false,
@@ -64,7 +85,7 @@ class CartViewModel : ViewModel() {
     fun increaseQuantity(item: CartItem) {
         viewModelScope.launch {
             try {
-                repository.updateQuantity(item.productId, item.quantity + 1)
+                cartRepository.updateQuantity(item.productId, item.quantity + 1)
                 loadCart()
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
@@ -76,9 +97,9 @@ class CartViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 if (item.quantity <= 1) {
-                    repository.removeFromCart(item.productId)
+                    cartRepository.removeFromCart(item.productId)
                 } else {
-                    repository.updateQuantity(item.productId, item.quantity - 1)
+                    cartRepository.updateQuantity(item.productId, item.quantity - 1)
                 }
                 loadCart()
             } catch (e: Exception) {
@@ -90,7 +111,7 @@ class CartViewModel : ViewModel() {
     fun removeItem(item: CartItem) {
         viewModelScope.launch {
             try {
-                repository.removeFromCart(item.productId)
+                cartRepository.removeFromCart(item.productId)
                 loadCart()
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
@@ -98,7 +119,91 @@ class CartViewModel : ViewModel() {
         }
     }
 
-    /** Réinitialise message/erreur après affichage (ex: Snackbar) */
+    fun setPaymentMethod(method: String) {
+        _uiState.update { it.copy(paymentMethod = method) }
+    }
+
+    fun updatePaymentInfo(info: PaymentInfo) {
+        _uiState.update { it.copy(paymentInfo = info) }
+    }
+
+    fun applyPromoCode(code: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isApplyingPromo = true, error = null) }
+            delay(1000)
+            val discount = when (code.uppercase()) {
+                "SAVE10" -> 10.0
+                "WELCOME" -> 20.0
+                else -> 0.0
+            }
+            if (discount > 0) {
+                _uiState.update {
+                    it.copy(
+                        isApplyingPromo = false,
+                        discountPercent = discount,
+                        appliedPromoCode = code.uppercase(),
+                        message = "Promo code applied!"
+                    )
+                }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isApplyingPromo = false,
+                        error = "Invalid promo code"
+                    )
+                }
+            }
+        }
+    }
+
+    fun placeOrder() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isPlacingOrder = true, error = null) }
+
+            try {
+                val state = _uiState.value
+                val method = state.paymentMethod
+
+                // simulation paiement en ligne
+                if (method == "online") {
+                    delay(2000) // simulate payment processing
+                }
+
+                orderRepository.createOrder(
+                    items = state.items,
+                    total = state.finalTotal,
+                    paymentMethod = method
+                )
+
+                cartRepository.clearCart()
+                loadCart()
+
+                val message = if (method == "online") {
+                    "Payment successful! Order placed."
+                } else {
+                    "Order placed. Pay on delivery."
+                }
+
+                _uiState.update {
+                    it.copy(
+                        isPlacingOrder = false,
+                        message = message,
+                        discountPercent = 0.0,
+                        appliedPromoCode = null
+                    )
+                }
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isPlacingOrder = false,
+                        error = e.message
+                    )
+                }
+            }
+        }
+    }
+
     fun clearFeedback() {
         _uiState.update { it.copy(message = null, error = null) }
     }

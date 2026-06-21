@@ -27,7 +27,8 @@ import com.mobile.shopease.data.tables.CartItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
-    viewModel: CartViewModel = viewModel()
+    viewModel: CartViewModel = viewModel(),
+    onProceedToCheckout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -36,7 +37,36 @@ fun CartScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("My Cart") }) }
+        topBar = { TopAppBar(title = { Text("My Cart") }) },
+        bottomBar = {
+            if (uiState.items.isNotEmpty()) {
+                Surface(shadowElevation = 8.dp) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Total (${uiState.itemCount} items)",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                "$${"%.2f".format(uiState.total)}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = onProceedToCheckout,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Proceed to Checkout")
+                        }
+                    }
+                }
+            }
+        }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -67,49 +97,18 @@ fun CartScreen(
                 }
 
                 else -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(uiState.items) { item ->
-                                CartItemRow(
-                                    item = item,
-                                    onIncrease = { viewModel.increaseQuantity(item) },
-                                    onDecrease = { viewModel.decreaseQuantity(item) },
-                                    onRemove = { viewModel.removeItem(item) }
-                                )
-                            }
-                        }
-
-                        // Total banner + checkout button
-                        Surface(shadowElevation = 8.dp) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        "Total (${uiState.itemCount} items)",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Text(
-                                        "$${"%.2f".format(uiState.total)}",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Button(
-                                    onClick = { /* TODO: brancher sur Checkout plus tard */ },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text("Checkout")
-                                }
-                            }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(uiState.items) { item ->
+                            CartItemRow(
+                                item = item,
+                                onIncrease = { viewModel.increaseQuantity(item) },
+                                onDecrease = { viewModel.decreaseQuantity(item) },
+                                onRemove = { viewModel.removeItem(item) }
+                            )
                         }
                     }
                 }
