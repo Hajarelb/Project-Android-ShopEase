@@ -37,10 +37,21 @@ fun CartScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("My Cart") }) },
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = { 
+            TopAppBar(
+                title = { Text("My Cart") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            ) 
+        },
         bottomBar = {
             if (uiState.items.isNotEmpty()) {
-                Surface(shadowElevation = 8.dp) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 8.dp
+                ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -48,18 +59,21 @@ fun CartScreen(
                         ) {
                             Text(
                                 "Total (${uiState.itemCount} items)",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 "$${"%.2f".format(uiState.total)}",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Button(
                             onClick = onProceedToCheckout,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text("Proceed to Checkout")
                         }
@@ -124,7 +138,11 @@ private fun CartItemRow(
     onDecrease: () -> Unit,
     onRemove: () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -146,27 +164,45 @@ private fun CartItemRow(
                 Text(
                     text = item.products?.name ?: "",
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "$${item.products?.price ?: 0.0}",
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 
             // Contrôles de quantité
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onDecrease) {
-                    Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                    Icon(
+                        Icons.Default.Remove, 
+                        contentDescription = "Decrease",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
-                Text(text = "${item.quantity}")
+                Text(
+                    text = "${item.quantity}",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Medium
+                )
                 IconButton(onClick = onIncrease) {
-                    Icon(Icons.Default.Add, contentDescription = "Increase")
+                    Icon(
+                        Icons.Default.Add, 
+                        contentDescription = "Increase",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 
             IconButton(onClick = onRemove) {
-                Icon(Icons.Default.Delete, contentDescription = "Remove")
+                Icon(
+                    Icons.Default.Delete, 
+                    contentDescription = "Remove",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
     }

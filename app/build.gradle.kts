@@ -96,5 +96,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("io.coil-kt:coil-compose:2.6.0")
-
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
 }
