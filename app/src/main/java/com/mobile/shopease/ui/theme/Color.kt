@@ -31,3 +31,4 @@ val DarkOnSurfaceVariant = Color(0xFFA39E96)
 // Functional Colors
 val ErrorColor = Color(0xFFB00020)
 val SuccessColor = Color(0xFF2E7D32)
+val StarColor = Color(0xFFFFC107)

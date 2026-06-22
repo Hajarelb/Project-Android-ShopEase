@@ -52,6 +52,8 @@ import com.mobile.shopease.ui.screens.ProductDetailScreen
 import com.mobile.shopease.ui.screens.ProductListScreen
 import com.mobile.shopease.ui.screens.ProfileScreen
 import com.mobile.shopease.ui.screens.WishlistScreen
+import androidx.compose.runtime.collectAsState
+import com.mobile.shopease.data.UserPreferences
 import com.mobile.shopease.ui.theme.ShopEaseTheme
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.handleDeeplinks
@@ -90,8 +92,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         handleAuthDeeplink(intent)
+        
+        val userPrefs = UserPreferences(this)
+        
         setContent {
-            ShopEaseTheme {
+            val darkMode by userPrefs.darkMode.collectAsState(initial = false)
+            
+            ShopEaseTheme(darkTheme = darkMode) {
                 val navController = rememberNavController()
                 var isReady by remember { mutableStateOf(false) }
                 var startDestination by remember { mutableStateOf(Screen.SignIn.route) }
