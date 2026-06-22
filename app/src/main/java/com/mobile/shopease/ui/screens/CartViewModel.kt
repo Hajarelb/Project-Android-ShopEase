@@ -172,26 +172,30 @@ class CartViewModel : ViewModel() {
     fun applyPromoCode(code: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isApplyingPromo = true, error = null) }
-            delay(1000)
-            val discount = when (code.uppercase()) {
-                "SAVE10" -> 10.0
-                "WELCOME" -> 20.0
-                else -> 0.0
-            }
-            if (discount > 0) {
-                _uiState.update {
-                    it.copy(
-                        isApplyingPromo = false,
-                        discountPercent = discount,
-                        appliedPromoCode = code.uppercase(),
-                        message = "Promo code applied!"
-                    )
+            try {
+                val promo = cartRepository.getPromoCode(code)
+                if (promo != null) {
+                    _uiState.update {
+                        it.copy(
+                            isApplyingPromo = false,
+                            discountPercent = promo.discountPercent,
+                            appliedPromoCode = promo.code,
+                            message = "Promo code applied!"
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isApplyingPromo = false,
+                            error = "Invalid or expired promo code"
+                        )
+                    }
                 }
-            } else {
+            } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isApplyingPromo = false,
-                        error = "Invalid promo code"
+                        error = e.message ?: "Error applying promo code"
                     )
                 }
             }

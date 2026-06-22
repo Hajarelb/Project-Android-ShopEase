@@ -2,9 +2,12 @@ package com.mobile.shopease.data.repository
 
 import com.mobile.shopease.data.remote.SupabaseClient
 import com.mobile.shopease.data.tables.CartItem
+import com.mobile.shopease.data.tables.PromoCode
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
@@ -92,5 +95,28 @@ class CartRepository {
             .delete {
                 filter { eq("user_id", userId) }
             }
+    }
+
+    suspend fun getPromoCode(code: String): PromoCode? {
+        val promo = postgrest["promo_codes"]
+            .select() {
+                filter {
+                    eq("code", code.uppercase())
+                    eq("is_active", true)
+                }
+            }
+            .decodeSingleOrNull<PromoCode>() ?: return null
+
+        // Check expiration
+        promo.expiresAt?.let {
+            try {
+                val expiry = Instant.parse(it)
+                if (expiry < Clock.System.now()) return null
+            } catch (e: Exception) {
+                // If date parsing fails, accept it or log it
+            }
+        }
+
+        return promo
     }
 }
