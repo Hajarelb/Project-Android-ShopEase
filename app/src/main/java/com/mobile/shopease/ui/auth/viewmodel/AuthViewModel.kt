@@ -30,7 +30,7 @@ class AuthViewModel : ViewModel() {//Creates authentication ViewModel. This clas
     //public read-only state: Exposes state safely to UI.
     //The UI can read and observe state changes, but it cannot modify the state directly.
 
-    fun signUp(email: String, pass: String) {//Handles user registration.
+    fun signUp(email: String, pass: String, fullName: String) {//Handles user registration.
 
         viewModelScope.launch {
             //Starts asynchronous coroutine. Needed because network requests take time
@@ -40,7 +40,7 @@ class AuthViewModel : ViewModel() {//Creates authentication ViewModel. This clas
 
             try {//Attempts authentication safely.
 
-                repository.signUp(email, pass)
+                repository.signUp(email, pass, fullName)
                 //Calls Supabase signup function.
 
                 _authState.value = AuthState.Success
