@@ -73,4 +73,21 @@ class OrderRepository {
             }
             .decodeList<OrderItem>()
     }
+
+    suspend fun cancelOrder(orderId: String) {
+        val order = getOrderById(orderId)
+
+        // Only allow cancellation for pending or confirmed orders
+        if (order.status !in listOf("pending", "confirmed")) {
+            throw Exception("Cannot cancel order with status: ${order.status}")
+        }
+
+        // Update the order status to cancelled
+        SupabaseClient.client.postgrest["orders"]
+            .update({
+                set("status", "cancelled")
+            }) {
+                filter { eq("id", orderId) }
+            }
+    }
 }
