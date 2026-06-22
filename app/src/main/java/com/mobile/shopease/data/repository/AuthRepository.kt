@@ -13,12 +13,12 @@ class AuthRepository {
     private val oauthRedirectUrl =
         "${BuildConfig.SUPABASE_AUTH_SCHEME}://${BuildConfig.SUPABASE_AUTH_HOST}"
 
-    suspend fun signUp(email: String, pass: String) {
-        val fullName = email.substringBefore("@")
+    suspend fun signUp(email: String, pass: String, fullName: String) {
+        val displayName = fullName.trim().ifBlank { email.substringBefore("@") }
         SupabaseClient.client.auth.signUpWith(Email) {
             this.email = email
             this.password = pass
-            data = buildJsonObject { put("full_name", fullName) }
+            data = buildJsonObject { put("full_name", displayName) }
         }
     }
 
