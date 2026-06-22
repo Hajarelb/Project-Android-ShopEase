@@ -1,60 +1,39 @@
 package com.mobile.shopease.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.mobile.shopease.data.repository.OrderRepository
 import com.mobile.shopease.data.tables.Order
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import com.mobile.shopease.data.tables.OrderStatusEnum
 
-// ViewModel
-class MyOrdersViewModel : ViewModel() {
-    private val orderRepository = OrderRepository()
-    private val _orders = MutableStateFlow<List<Order>>(emptyList())
-    val orders: StateFlow<List<Order>> = _orders
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    init {
-        loadOrders()
-    }
-
-    private fun loadOrders() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                _orders.value = orderRepository.getUserOrders()
-            } catch (e: Exception) {
-                _orders.value = emptyList()
-            }
-            _isLoading.value = false
-        }
-    }
-}
-
-// Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyOrdersScreen(
     onBack: () -> Unit,
+    onOrderClicked: (String) -> Unit = {},
     viewModel: MyOrdersViewModel = viewModel()
 ) {
     val orders by viewModel.orders.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("My Orders") },
@@ -62,38 +41,72 @@ fun MyOrdersScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { padding ->
         when {
             isLoading -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
             }
-            orders.isEmpty() -> {
+            error != null -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "No orders yet",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        "Error: ${error ?: "Unknown error"}",
+                        color = MaterialTheme.colorScheme.error
                     )
+                }
+            }
+            orders.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Outlined.ShoppingBag,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "No orders yet",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
             else -> {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(orders) { order ->
-                        OrderCard(order = order)
+                        OrderCardNew(
+                            order = order,
+                            onClick = { onOrderClicked(order.id ?: "") }
+                        )
                     }
                 }
             }
@@ -102,51 +115,112 @@ fun MyOrdersScreen(
 }
 
 @Composable
-private fun OrderCard(order: Order) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun OrderCardNew(order: Order, onClick: () -> Unit) {
+    val statusEnum = OrderStatusEnum.fromString(order.status)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Top row: order number + status badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Order #${order.id?.take(8)}",
-                    style = MaterialTheme.typography.titleSmall
-                )
-                // Status chip
-                val statusColor = when (order.status) {
-                    "confirmed" -> MaterialTheme.colorScheme.primary
-                    "pending" -> MaterialTheme.colorScheme.tertiary
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Order #${order.id?.take(8) ?: "N/A"}",
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    order.createdAt?.let {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            it.take(10),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-                Text(
-                    text = order.status.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = statusColor
-                )
+
+                // Status badge with color
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(statusEnum.color.copy(alpha = 0.2f))
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            statusEnum.icon,
+                            contentDescription = null,
+                            tint = statusEnum.color,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            statusEnum.displayName.uppercase(),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = statusEnum.color
+                            )
+                        )
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Middle row: payment method + total
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = order.paymentMethod.uppercase().replace("_", " "),
+                    order.paymentMethod.uppercase().replace("_", " "),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "$${"%.2f".format(order.total)}",
-                    style = MaterialTheme.typography.titleSmall,
+                    "${"%.2f".format(order.total)} $",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Bottom row: chevron (clickable hint)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    "View details",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
-            }
-            order.createdAt?.let {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = it.take(10), // show date only: "2025-06-01"
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Icon(
+                    Icons.Outlined.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
