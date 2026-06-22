@@ -31,6 +31,7 @@ data class ProductDetailUiState(
     val reviews: List<Review> = emptyList(),
     val isSaved: Boolean = false,
     val hasReviewed: Boolean = false,
+    val canReview: Boolean = false,
     val isLoading: Boolean = false,
     val isSubmittingReview: Boolean = false,
     val error: String? = null,
@@ -132,12 +133,14 @@ class ProductViewModel(
                 val product = repo.getProductById(productId)
                 val reviews = repo.getReviews(productId)
                 val savedIds = repo.getSavedProductIds()
+                val canReview = repo.hasPurchasedProduct(productId)
                 _detailState.update {
                     it.copy(
                         product = product,
                         reviews = reviews,
                         isSaved = productId in savedIds,
                         hasReviewed = reviews.any { r -> r.userId == currentUserId },
+                        canReview = canReview,
                         isLoading = false,
                     )
                 }
@@ -169,12 +172,31 @@ class ProductViewModel(
                     it.copy(
                         reviews = reviews,
                         hasReviewed = true,
+                        canReview = true,
                         isSubmittingReview = false,
                         reviewSuccess = true,
                     )
                 }
             } catch (e: Exception) {
                 _detailState.update { it.copy(isSubmittingReview = false, error = e.message) }
+            }
+        }
+    }
+
+    fun deleteReview(productId: String) {
+        viewModelScope.launch {
+            _detailState.update { it.copy(error = null) }
+            try {
+                repo.deleteReview(productId)
+                val reviews = repo.getReviews(productId)
+                _detailState.update {
+                    it.copy(
+                        reviews = reviews,
+                        hasReviewed = false,
+                    )
+                }
+            } catch (e: Exception) {
+                _detailState.update { it.copy(error = e.message) }
             }
         }
     }

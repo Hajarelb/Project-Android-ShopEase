@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
@@ -18,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -194,22 +196,37 @@ fun ProductDetailScreen(
 
             // ── Reviews header ────────────────────────────────────────────
             item {
-                Text(
-                    stringResource(R.string.reviews),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp)
-                )
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        stringResource(R.string.reviews),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        stringResource(R.string.verified_purchase_reviews),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 12.sp
+                    )
+                }
             }
 
-            // ── Add review form (only when authenticated + not yet reviewed)
+            // ── Add review form (only when authenticated + purchased + not yet reviewed)
             if (currentUserId != null && !state.hasReviewed) {
                 item {
-                    AddReviewForm(
-                        isSubmitting = state.isSubmittingReview,
-                        onSubmit = { rating, comment -> viewModel.submitReview(productId, rating, comment) },
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
+                    if (state.canReview) {
+                        AddReviewForm(
+                            isSubmitting = state.isSubmittingReview,
+                            onSubmit = { rating, comment -> viewModel.submitReview(productId, rating, comment) },
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    } else {
+                        Text(
+                            stringResource(R.string.only_verified_purchasers_can_review),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
                     Spacer(Modifier.height(8.dp))
                 }
             }
@@ -225,7 +242,12 @@ fun ProductDetailScreen(
                 }
             } else {
                 items(state.reviews) { review ->
-                    ReviewItem(review = review, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+                    ReviewItem(
+                        review = review,
+                        canDelete = review.userId == currentUserId,
+                        onDelete = { viewModel.deleteReview(productId) },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                    )
                 }
             }
 
@@ -333,8 +355,34 @@ private fun AddReviewForm(
 }
 
 @Composable
-private fun ReviewItem(review: Review, modifier: Modifier = Modifier) {
+private fun ReviewItem(
+    review: Review,
+    canDelete: Boolean,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = review.reviewerName?.takeIf { it.isNotBlank() } ?: "Customer",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            if (canDelete) {
+                IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.delete),
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(2.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             repeat(5) { i ->
                 Icon(
