@@ -1,5 +1,6 @@
 package com.mobile.shopease.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -34,6 +35,45 @@ fun OrderDetailsScreen(
     var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
     val orderRepository = remember { OrderRepository() }
+
+    var showCancelDialog by remember { mutableStateOf(false) }
+    var isCancelling by remember { mutableStateOf(false) }
+
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text("Cancel Order") },
+            text = { Text("Are you sure you want to cancel this order? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        isCancelling = true
+                        scope.launch {
+                            try {
+                                order?.id?.let { orderRepository.cancelOrder(it) }
+                                order = order?.copy(status = "cancelled")
+                                showCancelDialog = false
+                            } catch (e: Exception) {
+                                println("Error cancelling order: ${e.message}")
+                            } finally {
+                                isCancelling = false
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Cancel Order")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) {
+                    Text("Keep Order")
+                }
+            }
+        )
+    }
 
     LaunchedEffect(orderId) {
         scope.launch {
@@ -269,6 +309,36 @@ fun OrderDetailsScreen(
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+
+                // Cancel button — only if pending or confirmed
+                if (order != null && order!!.status in listOf("pending", "confirmed")) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    OutlinedButton(
+                        onClick = { showCancelDialog = true },
+                        enabled = !isCancelling,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        if (isCancelling) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        } else {
+                            Text("Cancel Order", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 
