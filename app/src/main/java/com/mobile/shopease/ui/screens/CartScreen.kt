@@ -100,6 +100,16 @@ fun CartScreen(
                     )
                 }
 
+                uiState.error != null -> {
+                    Text(
+                        text = uiState.error ?: "Unable to load cart",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(16.dp)
+                    )
+                }
+
                 uiState.items.isEmpty() -> {
                     Column(
                         modifier = Modifier.fillMaxSize(),

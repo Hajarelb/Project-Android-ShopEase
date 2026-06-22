@@ -72,18 +72,28 @@ class CartViewModel : ViewModel() {
     fun loadCart() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            try {
-                val items = cartRepository.getCartItems()
-                val addresses = addressRepository.getAddresses()
-                val defaultAddressId = addresses.find { it.isDefault }?.id
-                _uiState.update { it.copy(
-                    items = items, 
-                    addresses = addresses, 
-                    selectedAddressId = defaultAddressId,
-                    isLoading = false
-                ) }
+
+            val items = try {
+                cartRepository.getCartItems()
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
+                return@launch
+            }
+
+            val addresses = try {
+                addressRepository.getAddresses()
+            } catch (_: Exception) {
+                emptyList()
+            }
+
+            val defaultAddressId = addresses.find { it.isDefault }?.id
+            _uiState.update {
+                it.copy(
+                    items = items,
+                    addresses = addresses,
+                    selectedAddressId = defaultAddressId,
+                    isLoading = false
+                )
             }
         }
     }

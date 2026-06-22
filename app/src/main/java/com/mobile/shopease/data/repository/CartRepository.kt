@@ -5,13 +5,15 @@ import com.mobile.shopease.data.tables.CartItem
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
 class CartRepository {
 
     private val postgrest = SupabaseClient.client.postgrest
-
     private fun currentUserId(): String {
         return SupabaseClient.client.auth.currentUserOrNull()?.id
             ?: throw Exception("User not authenticated")
@@ -32,16 +34,16 @@ class CartRepository {
         val userId = currentUserId()
 
         val existing = postgrest["cart_items"]
-            .select {
+            .select(Columns.raw("quantity")) {
                 filter {
                     eq("user_id", userId)
                     eq("product_id", productId)
                 }
             }
-            .decodeSingleOrNull<CartItem>()
+            .decodeSingleOrNull<JsonObject>()
 
         if (existing != null) {
-            updateQuantity(productId, existing.quantity + quantity)
+            updateQuantity(productId, (existing["quantity"]?.jsonPrimitive?.int ?: 0) + quantity)
         } else {
             postgrest["cart_items"].insert(
                 buildJsonObject {
