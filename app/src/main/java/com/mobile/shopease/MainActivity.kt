@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -58,6 +57,7 @@ import com.mobile.shopease.data.UserPreferences
 import com.mobile.shopease.ui.theme.ShopEaseTheme
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.handleDeeplinks
+import androidx.core.view.WindowCompat
 
 // ── Bottom nav descriptor ─────────────────────────────────────────────────────
 
@@ -91,7 +91,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         handleAuthDeeplink(intent)
         
         val userPrefs = UserPreferences(this)
@@ -178,8 +177,7 @@ class MainActivity : AppCompatActivity() {
                         com.mobile.shopease.navigation.NavGraph(
                             navController = navController,
                             startDestination = startDestination,
-                            modifier = Modifier.padding(innerPadding)
-                        )
+                            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())                        )
                     }
                 }
             }
