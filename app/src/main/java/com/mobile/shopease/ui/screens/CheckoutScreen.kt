@@ -16,15 +16,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.stringResource
+import com.mobile.shopease.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
     cartViewModel: CartViewModel = viewModel(),
+    localizationViewModel: LocalizationViewModel = viewModel(),
     onOrderPlaced: () -> Unit,
     onBack: () -> Unit
 ) {
     val state by cartViewModel.uiState.collectAsState()
+    val currency by localizationViewModel.currency.collectAsState()
+    val rates by localizationViewModel.exchangeRates.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.message, state.error) {
@@ -47,10 +52,10 @@ fun CheckoutScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Checkout") },
+                title = { Text(stringResource(R.string.checkout)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -72,19 +77,20 @@ fun CheckoutScreen(
                     ) {
                         Column {
                             Text(
-                                "Total Amount",
+                                stringResource(R.string.total_amount),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            val convertedTotal = state.finalTotal * (rates[currency] ?: 1.0)
                             Text(
-                                "$${"%.2f".format(state.finalTotal)}",
+                                "${"%.2f".format(convertedTotal)} ${currency.uppercase()}",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
                         Text(
-                            "${state.itemCount} item(s)",
+                            stringResource(R.string.item_count, state.itemCount),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -106,10 +112,15 @@ fun CheckoutScreen(
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(if (state.paymentMethod == "online") "Processing payment..." else "Placing order...")
+                                Text(
+                                    if (state.paymentMethod == "online") 
+                                        stringResource(R.string.processing_payment) 
+                                    else 
+                                        stringResource(R.string.placing_order)
+                                )
                             }
                         } else {
-                            Text("Place Order", style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.place_order), style = MaterialTheme.typography.titleMedium)
                         }
                     }
                 }
@@ -124,13 +135,13 @@ fun CheckoutScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             // --- Promo code ---
-            Text("Promo code", style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.promo_code), style = MaterialTheme.typography.titleSmall)
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = promoInput,
                     onValueChange = { promoInput = it },
-                    label = { Text("Enter code") },
+                    label = { Text(stringResource(R.string.enter_code)) },
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
@@ -142,14 +153,14 @@ fun CheckoutScreen(
                     if (state.isApplyingPromo) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                     } else {
-                        Text("Apply")
+                        Text(stringResource(R.string.apply))
                     }
                 }
             }
             if (state.discountPercent > 0) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "Discount applied: -${state.discountPercent.toInt()}% (${state.appliedPromoCode})",
+                    stringResource(R.string.discount_applied, state.discountPercent.toInt(), state.appliedPromoCode ?: ""),
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -157,50 +168,89 @@ fun CheckoutScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // --- Shipping info ---
-            Text("Shipping information", style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.shipping_information), style = MaterialTheme.typography.titleSmall)
             Spacer(modifier = Modifier.height(8.dp))
 
-            OutlinedTextField(
-                value = state.shippingInfo.fullName,
-                onValueChange = {
-                    cartViewModel.updateShippingInfo(state.shippingInfo.copy(fullName = it))
-                },
-                label = { Text("Full name") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = state.shippingInfo.phoneNumber,
-                onValueChange = {
-                    if (it.all { c -> c.isDigit() || c == '+' }) {
-                        cartViewModel.updateShippingInfo(state.shippingInfo.copy(phoneNumber = it))
+            if (state.addresses.isNotEmpty()) {
+                Text(stringResource(R.string.select_saved_address), style = MaterialTheme.typography.labelMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                state.addresses.forEach { address ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { cartViewModel.selectAddress(address.id) }
+                            .padding(vertical = 4.dp)
+                    ) {
+                        RadioButton(
+                            selected = state.selectedAddressId == address.id,
+                            onClick = { cartViewModel.selectAddress(address.id) }
+                        )
+                        Column {
+                            Text(address.fullName, fontWeight = FontWeight.Bold)
+                            Text("${address.street}, ${address.city}", style = MaterialTheme.typography.bodySmall)
+                        }
                     }
-                },
-                label = { Text("Phone number") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier.fillMaxWidth()
-            )
+                }
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { cartViewModel.selectAddress(null) }
+                        .padding(vertical = 4.dp)
+                ) {
+                    RadioButton(
+                        selected = state.selectedAddressId == null,
+                        onClick = { cartViewModel.selectAddress(null) }
+                    )
+                    Text(stringResource(R.string.enter_new_address), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            if (state.selectedAddressId == null) {
+                OutlinedTextField(
+                    value = state.shippingInfo.fullName,
+                    onValueChange = {
+                        cartViewModel.updateShippingInfo(state.shippingInfo.copy(fullName = it))
+                    },
+                    label = { Text(stringResource(R.string.full_name)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            OutlinedTextField(
-                value = state.shippingInfo.address,
-                onValueChange = {
-                    cartViewModel.updateShippingInfo(state.shippingInfo.copy(address = it))
-                },
-                label = { Text("Delivery address") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2
-            )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = state.shippingInfo.phoneNumber,
+                    onValueChange = {
+                        if (it.all { c -> c.isDigit() || c == '+' }) {
+                            cartViewModel.updateShippingInfo(state.shippingInfo.copy(phoneNumber = it))
+                        }
+                    },
+                    label = { Text(stringResource(R.string.phone_number)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = state.shippingInfo.address,
+                    onValueChange = {
+                        cartViewModel.updateShippingInfo(state.shippingInfo.copy(address = it))
+                    },
+                    label = { Text(stringResource(R.string.delivery_address)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // --- Payment method ---
-            Text("Payment method", style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.payment_method), style = MaterialTheme.typography.titleSmall)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -210,7 +260,7 @@ fun CheckoutScreen(
                     selected = state.paymentMethod == "cod",
                     onClick = { cartViewModel.setPaymentMethod("cod") }
                 )
-                Text("Cash on Delivery")
+                Text(stringResource(R.string.cash_on_delivery))
             }
 
             Row(
@@ -221,13 +271,13 @@ fun CheckoutScreen(
                     selected = state.paymentMethod == "online",
                     onClick = { cartViewModel.setPaymentMethod("online") }
                 )
-                Text("Pay Online")
+                Text(stringResource(R.string.pay_online))
             }
 
             // --- Card details (only if online) ---
             if (state.paymentMethod == "online") {
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Card details", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.card_details), style = MaterialTheme.typography.titleSmall)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
@@ -235,7 +285,7 @@ fun CheckoutScreen(
                     onValueChange = {
                         cartViewModel.updatePaymentInfo(state.paymentInfo.copy(cardholderName = it))
                     },
-                    label = { Text("Cardholder name") },
+                    label = { Text(stringResource(R.string.cardholder_name)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -249,7 +299,7 @@ fun CheckoutScreen(
                             cartViewModel.updatePaymentInfo(state.paymentInfo.copy(cardNumber = it))
                         }
                     },
-                    label = { Text("Card number") },
+                    label = { Text(stringResource(R.string.card_number)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
@@ -265,7 +315,7 @@ fun CheckoutScreen(
                                 cartViewModel.updatePaymentInfo(state.paymentInfo.copy(expiryDate = it))
                             }
                         },
-                        label = { Text("MM/YY") },
+                        label = { Text(stringResource(R.string.expiry_date)) },
                         singleLine = true,
                         modifier = Modifier.weight(1f)
                     )
@@ -279,7 +329,7 @@ fun CheckoutScreen(
                                 cartViewModel.updatePaymentInfo(state.paymentInfo.copy(cvv = it))
                             }
                         },
-                        label = { Text("CVV") },
+                        label = { Text(stringResource(R.string.cvv)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f)

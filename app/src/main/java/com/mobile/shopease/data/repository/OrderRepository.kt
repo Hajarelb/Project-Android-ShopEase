@@ -16,7 +16,8 @@ class OrderRepository {
     suspend fun createOrder(
         items: List<CartItem>,
         total: Double,
-        paymentMethod: String   // "cod" or "online"
+        paymentMethod: String,   // "cod" or "online"
+        addressId: String? = null
     ): String {
         val userId = currentUserId()
         val paymentStatus = if (paymentMethod == "online") "paid" else "pending"
@@ -27,7 +28,8 @@ class OrderRepository {
                     userId = userId,
                     total = total,
                     paymentMethod = paymentMethod,
-                    paymentStatus = paymentStatus
+                    paymentStatus = paymentStatus,
+                    addressId = addressId
                 )
             ) { select() }
             .decodeSingle<Order>()

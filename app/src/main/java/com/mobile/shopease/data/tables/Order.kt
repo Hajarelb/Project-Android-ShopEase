@@ -11,5 +11,6 @@ data class Order(
     val status: String = "pending",
     @SerialName("payment_method") val paymentMethod: String,   // "cod" or "online"
     @SerialName("payment_status") val paymentStatus: String,   // "pending" or "paid"
+    @SerialName("address_id") val addressId: String? = null,
     @SerialName("created_at") val createdAt: String? = null
 )

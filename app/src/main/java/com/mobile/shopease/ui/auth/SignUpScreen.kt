@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.stringResource
 import com.mobile.shopease.ui.auth.viewmodel.AuthState
 import com.mobile.shopease.ui.auth.viewmodel.AuthViewModel
 import com.mobile.shopease.ui.components.SocialLoginButton
@@ -49,13 +50,13 @@ fun SignUpScreen(
 
             // Logo Section
             Text(
-                text = "ShopEase",
+                text = stringResource(R.string.app_name),
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold
             )
             Text(
-                text = "PREMIUM PORTAL",
+                text = stringResource(R.string.premium_portal),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 2.sp,
@@ -67,13 +68,13 @@ fun SignUpScreen(
             // Header Section
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Create Account",
+                    text = stringResource(R.string.create_account_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    text = "Join ShopEase and start your shopping journey.",
+                    text = stringResource(R.string.join_shopease),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
@@ -86,30 +87,30 @@ fun SignUpScreen(
             StyledTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = "Username",
-                placeholder = "Username"
+                label = stringResource(R.string.username),
+                placeholder = stringResource(R.string.username)
             )
 
             StyledTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email Address",
+                label = stringResource(R.string.email),
                 placeholder = "name@domain.com"
             )
 
             StyledTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = "Password",
-                placeholder = "Password",
+                label = stringResource(R.string.password),
+                placeholder = stringResource(R.string.password),
                 isPassword = true
             )
 
             StyledTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                label = "Confirm Password",
-                placeholder = "Password",
+                label = stringResource(R.string.confirm_password),
+                placeholder = stringResource(R.string.password),
                 isPassword = true
             )
 
@@ -144,7 +145,7 @@ fun SignUpScreen(
                     )
                 ) {
                     Text(
-                        "CREATE ACCOUNT",
+                        stringResource(R.string.create_account).uppercase(),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -154,7 +155,7 @@ fun SignUpScreen(
 
             // Divider Section
             Text(
-                text = "OR CONTINUE WITH",
+                text = stringResource(R.string.or_continue_with),
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold
@@ -190,12 +191,12 @@ fun SignUpScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Already have an account? ",
+                    stringResource(R.string.already_have_account),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
                 Text(
-                    text = "Sign In",
+                    text = stringResource(R.string.sign_in),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
@@ -206,7 +207,7 @@ fun SignUpScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "© 2024 SHOPEASE GLOBAL LUXURY. ALL RIGHTS RESERVED.",
+                text = stringResource(R.string.copyright),
                 fontSize = 8.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.padding(bottom = 16.dp)

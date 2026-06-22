@@ -23,7 +23,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.mobile.shopease.R
 import com.mobile.shopease.data.tables.Review
+import com.mobile.shopease.ui.theme.StarColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,9 +36,12 @@ fun ProductDetailScreen(
     onBack: () -> Unit,
     viewModel: ProductViewModel = viewModel(),
     cartViewModel: CartViewModel = viewModel(),
+    localizationViewModel: LocalizationViewModel = viewModel(),
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
     val cartState by cartViewModel.uiState.collectAsStateWithLifecycle()
+    val currency by localizationViewModel.currency.collectAsState()
+    val rates by localizationViewModel.exchangeRates.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -69,7 +75,7 @@ fun ProductDetailScreen(
                             Icon(
                                 imageVector = if (state.isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                 contentDescription = "Wishlist",
-                                tint = if (state.isSaved) Color.Red else LocalContentColor.current
+                                tint = if (state.isSaved) MaterialTheme.colorScheme.error else LocalContentColor.current
                             )
                         }
                     }
@@ -120,18 +126,20 @@ fun ProductDetailScreen(
                     Spacer(Modifier.height(6.dp))
 
                     // Price
+                    val convertedPrice = product.price * (rates[currency] ?: 1.0)
+                    val convertedOriginalPrice = product.originalPrice?.let { it * (rates[currency] ?: 1.0) }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "$%.2f".format(product.price),
+                            text = "${"%.2f".format(convertedPrice)} ${currency.uppercase()}",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        product.originalPrice?.let { orig ->
-                            if (orig > product.price) {
+                        convertedOriginalPrice?.let { orig ->
+                            if (product.originalPrice!! > product.price) {
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    text = "$%.2f".format(orig),
+                                    text = "${"%.2f".format(orig)} ${currency.uppercase()}",
                                     textDecoration = TextDecoration.LineThrough,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -147,7 +155,7 @@ fun ProductDetailScreen(
                                 Icon(
                                     Icons.Default.Star,
                                     contentDescription = null,
-                                    tint = if (i < avg.toInt()) Color(0xFFFFC107) else Color.LightGray,
+                                    tint = if (i < avg.toInt()) StarColor else MaterialTheme.colorScheme.outline,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -163,7 +171,7 @@ fun ProductDetailScreen(
                     // Description
                     product.description?.let {
                         Spacer(Modifier.height(12.dp))
-                        Text("Description", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.description), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                         Spacer(Modifier.height(4.dp))
                         Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 22.sp)
                     }
@@ -172,7 +180,7 @@ fun ProductDetailScreen(
                     if (product.stockQuantity < 5 && product.stockQuantity > 0) {
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "Only ${product.stockQuantity} left!",
+                            stringResource(R.string.only_left, product.stockQuantity),
                             color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 13.sp
@@ -187,7 +195,7 @@ fun ProductDetailScreen(
             // ── Reviews header ────────────────────────────────────────────
             item {
                 Text(
-                    "Reviews",
+                    stringResource(R.string.reviews),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(16.dp)
@@ -210,7 +218,7 @@ fun ProductDetailScreen(
             if (state.reviews.isEmpty()) {
                 item {
                     Text(
-                        "No reviews yet.",
+                        stringResource(R.string.no_reviews_yet),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
@@ -241,7 +249,12 @@ private fun AddToCartBar(
     inStock: Boolean,
     isAdding: Boolean,
     onAddToCart: () -> Unit,
+    localizationViewModel: LocalizationViewModel = viewModel(),
 ) {
+    val currency by localizationViewModel.currency.collectAsState()
+    val rates by localizationViewModel.exchangeRates.collectAsState()
+    val convertedPrice = price * (rates[currency] ?: 1.0)
+
     Surface(shadowElevation = 8.dp) {
         Row(
             modifier = Modifier
@@ -251,7 +264,7 @@ private fun AddToCartBar(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "$%.2f".format(price),
+                text = "${"%.2f".format(convertedPrice)} ${currency.uppercase()}",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -267,7 +280,7 @@ private fun AddToCartBar(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text(if (inStock) "Add to Cart" else "Out of Stock")
+                    Text(if (inStock) stringResource(R.string.add_to_cart) else stringResource(R.string.out_of_stock))
                 }
             }
         }
@@ -285,7 +298,7 @@ private fun AddReviewForm(
 
     Card(modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text("Write a Review", fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.write_a_review), fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
             Row {
                 repeat(5) { i ->
@@ -293,7 +306,7 @@ private fun AddReviewForm(
                         Icon(
                             Icons.Default.Star,
                             contentDescription = "${i + 1} stars",
-                            tint = if (i < rating) Color(0xFFFFC107) else Color.LightGray,
+                            tint = if (i < rating) StarColor else MaterialTheme.colorScheme.outline,
                         )
                     }
                 }
@@ -302,7 +315,7 @@ private fun AddReviewForm(
             OutlinedTextField(
                 value = comment,
                 onValueChange = { comment = it },
-                label = { Text("Comment") },
+                label = { Text(stringResource(R.string.comment)) },
                 minLines = 2,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -313,7 +326,7 @@ private fun AddReviewForm(
                 modifier = Modifier.align(Alignment.End)
             ) {
                 if (isSubmitting) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                else Text("Submit")
+                else Text(stringResource(R.string.submit))
             }
         }
     }
@@ -327,7 +340,7 @@ private fun ReviewItem(review: Review, modifier: Modifier = Modifier) {
                 Icon(
                     Icons.Default.Star,
                     contentDescription = null,
-                    tint = if (i < review.rating) Color(0xFFFFC107) else Color.LightGray,
+                    tint = if (i < review.rating) StarColor else MaterialTheme.colorScheme.outline,
                     modifier = Modifier.size(16.dp)
                 )
             }

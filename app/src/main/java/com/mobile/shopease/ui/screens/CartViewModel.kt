@@ -2,8 +2,10 @@ package com.mobile.shopease.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mobile.shopease.data.repository.AddressRepository
 import com.mobile.shopease.data.repository.CartRepository
 import com.mobile.shopease.data.repository.OrderRepository
+import com.mobile.shopease.data.tables.Address
 import com.mobile.shopease.data.tables.CartItem
 import com.mobile.shopease.data.tables.PaymentInfo
 import com.mobile.shopease.data.tables.ShippingInfo
@@ -16,6 +18,8 @@ import kotlinx.coroutines.delay
 
 data class CartUiState(
     val items: List<CartItem> = emptyList(),
+    val addresses: List<Address> = emptyList(),
+    val selectedAddressId: String? = null,
     val isLoading: Boolean = false,
     val isAddingToCart: Boolean = false,
     val isPlacingOrder: Boolean = false,
@@ -38,9 +42,11 @@ data class CartUiState(
         get() = total * (1 - discountPercent / 100)
 
     val isShippingInfoValid: Boolean
-        get() = shippingInfo.fullName.isNotBlank() &&
+        get() = selectedAddressId != null || (
+                shippingInfo.fullName.isNotBlank() &&
                 shippingInfo.phoneNumber.length >= 8 &&
                 shippingInfo.address.isNotBlank()
+        )
 
     val isPaymentInfoValid: Boolean
         get() = paymentMethod == "cod" || (
@@ -58,6 +64,7 @@ class CartViewModel : ViewModel() {
 
     private val cartRepository = CartRepository()
     private val orderRepository = OrderRepository()
+    private val addressRepository = AddressRepository()
 
     private val _uiState = MutableStateFlow(CartUiState())
     val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
@@ -67,11 +74,22 @@ class CartViewModel : ViewModel() {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val items = cartRepository.getCartItems()
-                _uiState.update { it.copy(items = items, isLoading = false) }
+                val addresses = addressRepository.getAddresses()
+                val defaultAddressId = addresses.find { it.isDefault }?.id
+                _uiState.update { it.copy(
+                    items = items, 
+                    addresses = addresses, 
+                    selectedAddressId = defaultAddressId,
+                    isLoading = false
+                ) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
+    }
+
+    fun selectAddress(addressId: String?) {
+        _uiState.update { it.copy(selectedAddressId = addressId) }
     }
 
     fun addToCart(productId: String) {
@@ -186,7 +204,8 @@ class CartViewModel : ViewModel() {
                 orderRepository.createOrder(
                     items = state.items,
                     total = state.finalTotal,
-                    paymentMethod = method
+                    paymentMethod = method,
+                    addressId = state.selectedAddressId
                 )
 
                 cartRepository.clearCart()

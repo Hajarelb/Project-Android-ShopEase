@@ -3,6 +3,7 @@ package com.mobile.shopease
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -84,7 +85,7 @@ private val bottomBarRoutes = setOf(
 
 // ── Activity ──────────────────────────────────────────────────────────────────
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val googleSignInCompleted = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -158,7 +159,16 @@ class MainActivity : ComponentActivity() {
                                                     contentDescription = item.label
                                                 )
                                             },
-                                            label = { Text(item.label) }
+                                            label = { 
+                                                val label = when(item.label) {
+                                                    "Home" -> getString(R.string.home)
+                                                    "Wishlist" -> getString(R.string.wishlist)
+                                                    "Cart" -> getString(R.string.cart)
+                                                    "Profile" -> getString(R.string.profile)
+                                                    else -> item.label
+                                                }
+                                                Text(label) 
+                                            }
                                         )
                                     }
                                 }

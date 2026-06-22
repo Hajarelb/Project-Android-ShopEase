@@ -22,15 +22,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.mobile.shopease.R
 import com.mobile.shopease.data.tables.CartItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
     viewModel: CartViewModel = viewModel(),
+    localizationViewModel: LocalizationViewModel = viewModel(),
     onProceedToCheckout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val currency by localizationViewModel.currency.collectAsState()
+    val rates by localizationViewModel.exchangeRates.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadCart()
@@ -40,7 +45,7 @@ fun CartScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = { 
             TopAppBar(
-                title = { Text("My Cart") },
+                title = { Text(stringResource(R.string.my_cart)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -58,12 +63,13 @@ fun CartScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                "Total (${uiState.itemCount} items)",
+                                "${stringResource(R.string.total)} (${uiState.itemCount} ${stringResource(R.string.items)})",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            val convertedTotal = uiState.total * (rates[currency] ?: 1.0)
                             Text(
-                                "$${"%.2f".format(uiState.total)}",
+                                "${"%.2f".format(convertedTotal)} ${currency.uppercase()}",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -75,7 +81,7 @@ fun CartScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("Proceed to Checkout")
+                            Text(stringResource(R.string.proceed_to_checkout))
                         }
                     }
                 }
@@ -106,7 +112,7 @@ fun CartScreen(
                             modifier = Modifier.size(64.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Your cart is empty")
+                        Text(stringResource(R.string.your_cart_empty))
                     }
                 }
 
@@ -134,6 +140,7 @@ fun CartScreen(
 @Composable
 private fun CartItemRow(
     item: CartItem,
+    localizationViewModel: LocalizationViewModel = viewModel(),
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
     onRemove: () -> Unit
@@ -167,8 +174,11 @@ private fun CartItemRow(
                     maxLines = 1,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                val currency by localizationViewModel.currency.collectAsState()
+                val rates by localizationViewModel.exchangeRates.collectAsState()
+                val convertedPrice = (item.products?.price ?: 0.0) * (rates[currency] ?: 1.0)
                 Text(
-                    text = "$${item.products?.price ?: 0.0}",
+                    text = "${"%.2f".format(convertedPrice)} ${currency.uppercase()}",
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyMedium
                 )

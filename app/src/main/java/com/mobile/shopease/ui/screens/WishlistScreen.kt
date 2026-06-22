@@ -9,9 +9,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.mobile.shopease.R
 import com.mobile.shopease.data.tables.Product
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,10 +30,10 @@ fun WishlistScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Wishlist") },
+                title = { Text(stringResource(R.string.my_wishlist)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -42,7 +44,7 @@ fun WishlistScreen(
                 CircularProgressIndicator()
             }
             state.products.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("Your wishlist is empty.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.wishlist_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             else -> LazyColumn(
                 modifier = Modifier.padding(padding).fillMaxSize(),
@@ -90,7 +92,7 @@ private fun WishlistProductRow(
                     .padding(end = 16.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
-                Text("Remove", color = MaterialTheme.colorScheme.error)
+                Text(stringResource(R.string.remove), color = MaterialTheme.colorScheme.error)
             }
         }
     ) {

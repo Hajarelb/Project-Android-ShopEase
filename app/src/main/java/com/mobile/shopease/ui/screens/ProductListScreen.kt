@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,8 +28,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.mobile.shopease.R
 import com.mobile.shopease.data.tables.Category
 import com.mobile.shopease.data.tables.Product
+import com.mobile.shopease.ui.theme.StarColor
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,14 +48,32 @@ fun ProductListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("ShopEase", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = onWishlistClick) {
-                        Icon(Icons.Default.Favorite, contentDescription = "Wishlist")
+            Column {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold) },
+                    actions = {
+                        IconButton(onClick = onWishlistClick) {
+                            Icon(Icons.Default.Favorite, contentDescription = stringResource(R.string.wishlist))
+                        }
                     }
-                }
-            )
+                )
+                // Search Bar
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = { viewModel.searchProducts(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    placeholder = { Text(stringResource(R.string.search_products)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface
+                    )
+                )
+            }
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
@@ -115,14 +137,21 @@ private fun CategoryChipRow(
             FilterChip(
                 selected = selectedId == null,
                 onClick = { onSelect(null) },
-                label = { Text("All") }
+                label = { Text(stringResource(R.string.all)) }
             )
         }
         items(categories) { cat ->
+            val localizedName = when (cat.name.lowercase()) {
+                "electronics" -> stringResource(R.string.category_electronics)
+                "fashion" -> stringResource(R.string.category_fashion)
+                "home" -> stringResource(R.string.category_home)
+                "beauty" -> stringResource(R.string.category_beauty)
+                else -> cat.name
+            }
             FilterChip(
                 selected = selectedId == cat.id,
                 onClick = { onSelect(cat.id) },
-                label = { Text(cat.name) }
+                label = { Text(localizedName) }
             )
         }
     }
@@ -132,9 +161,15 @@ private fun CategoryChipRow(
 fun ProductCard(
     product: Product,
     isSaved: Boolean,
+    localizationViewModel: LocalizationViewModel = viewModel(),
     onClick: () -> Unit,
     onSaveToggle: () -> Unit,
 ) {
+    val currency by localizationViewModel.currency.collectAsState()
+    val rates by localizationViewModel.exchangeRates.collectAsState()
+    val convertedPrice = product.price * (rates[currency] ?: 1.0)
+    val convertedOriginalPrice = product.originalPrice?.let { it * (rates[currency] ?: 1.0) }
+
     val discount = product.originalPrice?.let {
         if (it > product.price) ((1 - product.price / it) * 100).roundToInt() else null
     }
@@ -171,7 +206,7 @@ fun ProductCard(
                             Icon(
                                 Icons.Default.Star,
                                 contentDescription = null,
-                                tint = Color(0xFFFFC107),
+                                tint = StarColor,
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
@@ -192,15 +227,15 @@ fun ProductCard(
                     // Price row
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "$%.2f".format(product.price),
+                            text = "${"%.2f".format(convertedPrice)} ${currency.uppercase()}",
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
                         )
-                        product.originalPrice?.let { orig ->
-                            if (orig > product.price) {
+                        convertedOriginalPrice?.let { orig ->
+                            if (product.originalPrice!! > product.price) {
                                 Spacer(Modifier.width(4.dp))
                                 Text(
-                                    text = "$%.2f".format(orig),
+                                    text = "${"%.2f".format(orig)} ${currency.uppercase()}",
                                     fontSize = 11.sp,
                                     textDecoration = TextDecoration.LineThrough,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -231,12 +266,12 @@ fun ProductCard(
                     .align(Alignment.TopEnd)
                     .padding(4.dp)
                     .size(32.dp)
-                    .background(Color.White.copy(alpha = 0.8f), CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), CircleShape)
             ) {
                 Icon(
                     imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = if (isSaved) "Remove from wishlist" else "Save",
-                    tint = if (isSaved) Color.Red else Color.Gray,
+                    contentDescription = if (isSaved) stringResource(R.string.remove_from_wishlist) else stringResource(R.string.add_to_wishlist),
+                    tint = if (isSaved) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }

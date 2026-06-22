@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.ShopEase" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.ShopEase" parent="Theme.AppCompat.Light.NoActionBar" />
 
-    <!-- Your main app theme --><style name="Theme.MyApplication" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Your main app theme --><style name="Theme.MyApplication" parent="Theme.AppCompat.Light.NoActionBar" />
 
     <!-- The Splash Screen Theme -->
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">

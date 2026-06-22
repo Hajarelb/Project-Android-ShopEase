@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mobile.shopease.ui.auth.viewmodel.AuthState
 import com.mobile.shopease.ui.auth.viewmodel.AuthViewModel
@@ -57,7 +58,7 @@ fun SignInScreen(
             )
 
             Text(
-                text = "PREMIUM PORTAL",
+                text = stringResource(R.string.premium_portal),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 2.sp,
@@ -72,14 +73,14 @@ fun SignInScreen(
             ) {
 
                 Text(
-                    text = "Welcome back",
+                    text = stringResource(R.string.welcome_back),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(
-                    text = "Enter your credentials to access your collection.",
+                    text = stringResource(R.string.enter_credentials),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
@@ -92,7 +93,7 @@ fun SignInScreen(
             StyledTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email",
+                label = stringResource(R.string.email),
                 placeholder = "name@domain.com"
             )
 
@@ -100,15 +101,15 @@ fun SignInScreen(
             StyledTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = "Password",
-                placeholder = "Password",
+                label = stringResource(R.string.password),
+                placeholder = stringResource(R.string.password),
                 isPassword = true
             )
 
             //Forgot password
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Forgot Password?",
+                    text = stringResource(R.string.forgot_password),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -149,7 +150,7 @@ fun SignInScreen(
                     )
                 ) {
                     Text(
-                        "LOGIN",
+                        stringResource(R.string.login),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -159,7 +160,7 @@ fun SignInScreen(
 
             // Social Divider
             Text(
-                text = "OR CONTINUE WITH",
+                text = stringResource(R.string.or_continue_with),
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold
@@ -197,13 +198,13 @@ fun SignInScreen(
             ) {
 
                 Text(
-                    "Don't have an account? ",
+                    stringResource(R.string.dont_have_account) + " ",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
 
                 Text(
-                    text = "Create Account",
+                    text = stringResource(R.string.create_account),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
@@ -216,7 +217,7 @@ fun SignInScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "© 2024 SHOPEASE GLOBAL LUXURY. ALL RIGHTS RESERVED.",
+                text = stringResource(R.string.copyright),
                 fontSize = 8.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.padding(bottom = 16.dp)

@@ -87,6 +87,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.auth)
+    implementation(libs.supabase.storage)
     implementation(libs.ktor.client.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

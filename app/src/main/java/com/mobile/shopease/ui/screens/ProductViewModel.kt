@@ -19,6 +19,7 @@ data class ProductListUiState(
     val categories: List<Category> = emptyList(),
     val selectedCategoryId: String? = null,
     val savedProductIds: Set<String> = emptySet(),
+    val searchQuery: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
 )
@@ -76,9 +77,25 @@ class ProductViewModel(
 
     fun selectCategory(categoryId: String?) {
         viewModelScope.launch {
-            _listState.update { it.copy(selectedCategoryId = categoryId, isLoading = true) }
+            _listState.update { it.copy(selectedCategoryId = categoryId, searchQuery = "", isLoading = true) }
             try {
                 val products = repo.getProducts(categoryId)
+                _listState.update { it.copy(products = products, isLoading = false) }
+            } catch (e: Exception) {
+                _listState.update { it.copy(isLoading = false, error = e.message) }
+            }
+        }
+    }
+
+    fun searchProducts(query: String) {
+        viewModelScope.launch {
+            _listState.update { it.copy(searchQuery = query, selectedCategoryId = null, isLoading = true) }
+            try {
+                val products = if (query.isBlank()) {
+                    repo.getProducts()
+                } else {
+                    repo.searchProducts(query)
+                }
                 _listState.update { it.copy(products = products, isLoading = false) }
             } catch (e: Exception) {
                 _listState.update { it.copy(isLoading = false, error = e.message) }

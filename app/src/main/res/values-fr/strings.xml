@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ShopEase</string>
+    <string name="home">Accueil</string>
+    <string name="wishlist">Favoris</string>
+    <string name="cart">Panier</string>
+    <string name="my_cart">Mon Panier</string>
+    <string name="total">Total</string>
+    <string name="items">articles</string>
+    <string name="search_products">Rechercher des produits…</string>
+    <string name="all">Tout</string>
+    <string name="profile">Profil</string>
+
+    <!-- Auth -->
+    <string name="welcome_back">Bienvenue</string>
+    <string name="enter_credentials">Entrez vos identifiants pour accéder à votre collection.</string>
+    <string name="email">Email</string>
+    <string name="password">Mot de passe</string>
+    <string name="login">CONNEXION</string>
+    <string name="forgot_password">Mot de passe oublié ?</string>
+    <string name="dont_have_account">Vous n\'avez pas de compte ?</string>
+    <string name="create_account">Créer un compte</string>
+
+    <!-- Cart -->
+    <string name="your_cart_empty">Votre panier est vide</string>
+    <string name="add_to_cart">Ajouter au panier</string>
+    <string name="proceed_to_checkout">Procéder au paiement</string>
+    <string name="place_order">Passer la commande</string>
+
+    <!-- Checkout -->
+    <string name="promo_code">Code promo</string>
+    <string name="apply">Appliquer</string>
+    <string name="shipping_information">Informations de livraison</string>
+    <string name="full_name">Nom complet</string>
+    <string name="phone_number">Numéro de téléphone</string>
+    <string name="delivery_address">Adresse de livraison</string>
+    <string name="payment_method">Mode de paiement</string>
+    <string name="cash_on_delivery">Paiement à la livraison</string>
+    <string name="pay_online">Payer en ligne</string>
+
+    <!-- Settings -->
+    <string name="dark_mode">Mode sombre</string>
+    <string name="notifications">Notifications</string>
+    <string name="language">Langue</string>
+    <string name="currency">Devise</string>
+    <string name="settings">Paramètres</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
+    <string name="terms_of_service">Conditions d\'utilisation</string>
+    <string name="help_center">Centre d\'aide</string>
+    <string name="delete_account">Supprimer le compte</string>
+    <string name="log_out">Déconnexion</string>
+    <string name="payment_methods">Moyens de paiement</string>
+    <string name="payment_methods_subtitle">Gérer vos cartes et portefeuilles</string>
+    <string name="my_orders_subtitle">Historique et suivi</string>
+    <string name="settings_subtitle">Confidentialité et préférences</string>
+    <string name="addresses">Adresses</string>
+    <string name="addresses_subtitle">Gérer vos adresses enregistrées</string>
+    <string name="delete">Supprimer</string>
+    <string name="cancel">Annuler</string>
+    <string name="delete_account_confirmation">Cette action est irréversible. Toutes vos données seront supprimées.</string>
+
+    <!-- Orders -->
+    <string name="my_orders">Mes commandes</string>
+    <string name="order_details">Détails de la commande</string>
+    <string name="no_orders_yet">Aucune commande</string>
+    <string name="pending">En attente</string>
+    <string name="confirmed">Confirmée</string>
+    <string name="shipped">Expédiée</string>
+    <string name="delivered">Livrée</string>
+    <string name="cancelled">Annulée</string>
+    <string name="description">Description</string>
+    <string name="reviews">Avis</string>
+    <string name="write_a_review">Écrire un avis</string>
+    <string name="comment">Commentaire</string>
+    <string name="submit">Envoyer</string>
+    <string name="no_reviews_yet">Aucun avis pour le moment.</string>
+    <string name="out_of_stock">Rupture de stock</string>
+    <string name="only_left">Plus que %1$d restants !</string>
+    <string name="no_addresses">Aucune adresse trouvée. Ajoutez-en une pour commencer !</string>
+    <string name="add_new_address">Ajouter une nouvelle adresse</string>
+    <string name="default_label">Par défaut</string>
+    <string name="set_default">Définir par défaut</string>
+    <string name="street_address">Adresse</string>
+    <string name="city">Ville</string>
+    <string name="state_province">Région/État</string>
+    <string name="postal_code">Code postal</string>
+    <string name="country">Pays</string>
+    <string name="save_address">Enregistrer l\'adresse</string>
+    <string name="set_as_default_address">Définir comme adresse par défaut</string>
+    <string name="checkout">Paiement</string>
+    <string name="total_amount">Montant total</string>
+    <string name="item_count">%1$d article(s)</string>
+    <string name="processing_payment">Traitement du paiement…</string>
+    <string name="placing_order">Passage de la commande…</string>
+    <string name="enter_code">Entrer le code</string>
+    <string name="discount_applied">Remise appliquée : -%1$d%% (%2$s)</string>
+    <string name="select_saved_address">Choisir une adresse enregistrée</string>
+    <string name="enter_new_address">Entrer une nouvelle adresse</string>
+    <string name="card_details">Détails de la carte</string>
+    <string name="cardholder_name">Nom du titulaire</string>
+    <string name="card_number">Numéro de carte</string>
+    <string name="expiry_date">MM/AA</string>
+    <string name="cvv">CVV</string>
+    <string name="back">Retour</string>
+    <string name="menu">Menu</string>
+    <string name="or_continue_with">OU CONTINUER AVEC</string>
+    <string name="premium_portal">PORTAIL PREMIUM</string>
+    <string name="copyright">© 2024 SHOPEASE GLOBAL LUXURY. TOUS DROITS RÉSERVÉS.</string>
+    <string name="search">Rechercher</string>
+    <string name="categories">Catégories</string>
+    <string name="add_to_wishlist">Ajouter aux favoris</string>
+    <string name="remove_from_wishlist">Retirer des favoris</string>
+    <string name="my_wishlist">Ma Liste de Souhaits</string>
+    <string name="create_account_title">Créer un Compte</string>
+    <string name="join_shopease">Rejoignez ShopEase et commencez votre voyage de shopping.</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="confirm_password">Confirmer le mot de passe</string>
+    <string name="already_have_account">Vous avez déjà un compte ? </string>
+    <string name="sign_in">Se connecter</string>
+    <string name="category_electronics">Électronique</string>
+    <string name="category_fashion">Mode</string>
+    <string name="category_home">Maison</string>
+    <string name="category_beauty">Beauté</string>
+    <string name="wishlist_empty">Votre liste de souhaits est vide.</string>
+    <string name="remove">Supprimer</string>
+</resources>

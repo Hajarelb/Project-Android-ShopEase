@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.mobile.shopease.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +61,7 @@ fun SettingsScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Account") },
+            title = { Text(stringResource(R.string.delete_account)) },
             text = {
                 Text("This action is irreversible. All your data, orders, and preferences will be permanently removed.")
             },
@@ -94,7 +96,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Settings",
+                        stringResource(R.string.settings),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -130,7 +132,7 @@ fun SettingsScreen(
             SettingsCard {
                 SettingsToggleRow(
                     icon = Icons.Outlined.DarkMode,
-                    title = "Dark Mode",
+                    title = stringResource(R.string.dark_mode),
                     subtitle = "Cinematic obsidian interface",
                     checked = darkMode,
                     onCheckedChange = { viewModel.setDarkMode(it) }
@@ -138,7 +140,7 @@ fun SettingsScreen(
                 SettingsDivider()
                 SettingsToggleRow(
                     icon = Icons.Outlined.Notifications,
-                    title = "Notifications",
+                    title = stringResource(R.string.notifications),
                     subtitle = "Exclusive drops and alerts",
                     checked = notifications,
                     onCheckedChange = { viewModel.setNotifications(it) }
@@ -153,14 +155,14 @@ fun SettingsScreen(
             SettingsCard {
                 SettingsNavigationRow(
                     icon = Icons.Outlined.Language,
-                    title = "Language",
+                    title = stringResource(R.string.language),
                     subtitle = languageDisplay,
                     onClick = onNavigateToLanguage
                 )
                 SettingsDivider()
                 SettingsNavigationRow(
                     icon = Icons.Outlined.AttachMoney,
-                    title = "Currency",
+                    title = stringResource(R.string.currency),
                     subtitle = currencyDisplay,
                     onClick = onNavigateToCurrency
                 )
@@ -174,21 +176,21 @@ fun SettingsScreen(
             SettingsCard {
                 SettingsNavigationRow(
                     icon = Icons.Outlined.PrivacyTip,
-                    title = "Privacy Policy",
+                    title = stringResource(R.string.privacy_policy),
                     subtitle = null,
                     onClick = onNavigateToPrivacy
                 )
                 SettingsDivider()
                 SettingsNavigationRow(
                     icon = Icons.Outlined.Description,
-                    title = "Terms of Service",
+                    title = stringResource(R.string.terms_of_service),
                     subtitle = null,
                     onClick = onNavigateToTerms
                 )
                 SettingsDivider()
                 SettingsNavigationRow(
                     icon = Icons.AutoMirrored.Outlined.HelpOutline,
-                    title = "Help Center",
+                    title = stringResource(R.string.help_center),
                     subtitle = null,
                     onClick = onNavigateToHelp
                 )
@@ -221,7 +223,7 @@ fun SettingsScreen(
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        "Delete Account",
+                        stringResource(R.string.delete_account),
                         style = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.SemiBold

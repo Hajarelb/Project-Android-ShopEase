@@ -53,6 +53,21 @@ class ProductRepository {
         }.decodeAs<Product>()
     }
 
+    suspend fun searchProducts(query: String): List<Product> {
+        return db["products"].select(
+            columns = Columns.raw("*, product_ratings(avg_rating, review_count)")
+        ) {
+            filter {
+                eq("is_active", true)
+                or {
+                    ilike("name", "%$query%")
+                    ilike("description", "%$query%")
+                }
+            }
+            order("created_at", Order.DESCENDING)
+        }.decodeList<Product>()
+    }
+
     // ── Categories ───────────────────────────────────────────────────────────
 
     suspend fun getCategories(): List<Category> {

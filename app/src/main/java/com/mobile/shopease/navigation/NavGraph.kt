@@ -114,7 +114,21 @@ fun NavGraph(
                     }
                 },
                 onNavigateToMyOrders = { navController.navigate(Screen.MyOrders.route) },
-                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                onNavigateToAddresses = { navController.navigate(Screen.Addresses.route) }
+            )
+        }
+
+        composable(Screen.Addresses.route) {
+            AddressesScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddAddress = { navController.navigate(Screen.AddAddress.route) }
+            )
+        }
+
+        composable(Screen.AddAddress.route) {
+            AddAddressScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
