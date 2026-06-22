@@ -132,7 +132,7 @@ fun SignUpScreen(
                 Button(
                     onClick = { 
                         if (password == confirmPassword) {
-                            viewModel.signUp(email, password) 
+                            viewModel.signUp(email, password, username)
                         }
                     },
                     modifier = Modifier
