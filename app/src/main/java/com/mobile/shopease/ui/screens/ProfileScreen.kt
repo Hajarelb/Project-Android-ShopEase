@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -40,7 +39,6 @@ fun ProfileScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToAddresses: () -> Unit = {},
     onNavigateToPaymentMethods: () -> Unit = {},
-    onNavigateToHelp: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -55,7 +53,7 @@ fun ProfileScreen(
     val emailFontSize = if (isTablet) 16.sp else 13.sp
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -64,14 +62,14 @@ fun ProfileScreen(
                             "Profile",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1A1A1A)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { /* Open menu */ }) {
-                        Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = "Menu", tint = Color(0xFF1A1A1A))
+                        Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = "Menu", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 actions = {
@@ -81,11 +79,11 @@ fun ProfileScreen(
                                 Badge(containerColor = MaterialTheme.colorScheme.primary) { }
                             }
                         ) {
-                            Icon(Icons.Outlined.Notifications, contentDescription = "Notifications", tint = Color(0xFF1A1A1A))
+                            Icon(Icons.Outlined.Notifications, contentDescription = "Notifications", tint = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { padding ->
@@ -102,11 +100,10 @@ fun ProfileScreen(
             // Profile Card
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(20.dp), spotColor = Color.LightGray),
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)), // Very light gray surface
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -121,7 +118,7 @@ fun ProfileScreen(
                             .border(2.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
                             .padding(6.dp)
                             .clip(CircleShape)
-                            .background(Color.White),
+                            .background(MaterialTheme.colorScheme.surface),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -139,7 +136,7 @@ fun ProfileScreen(
                             text = state.fullName,
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF1A1A1A),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = nameFontSize,
                                 letterSpacing = 0.5.sp
                             ),
@@ -149,7 +146,7 @@ fun ProfileScreen(
                         Text(
                             text = state.email,
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = emailFontSize
                             ),
                             maxLines = 1,
@@ -165,10 +162,11 @@ fun ProfileScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(16.dp), spotColor = Color.LightGray),
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable { onNavigateToMyOrders() },
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -184,20 +182,20 @@ fun ProfileScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Outlined.ShoppingBag, 
-                            contentDescription = null, 
+                            Icons.Outlined.ShoppingBag,
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
-                    
+
                     Spacer(modifier = Modifier.width(12.dp))
-                    
+
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "ORDERS", 
+                            "ORDERS",
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
                             )
@@ -209,22 +207,18 @@ fun ProfileScreen(
                                 text = state.orderCount.toString(),
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1A1A1A)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
                     }
 
-                    Box(modifier = Modifier.height(40.dp).width(1.dp).background(Color(0xFFEEEEEE)))
-
-                    TextButton(
-                        onClick = onNavigateToMyOrders,
-                        modifier = Modifier.padding(start = 16.dp)
-                    ) {
-                        Text("View history", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                    }
+                    Icon(
+                        Icons.Outlined.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
 
@@ -233,11 +227,10 @@ fun ProfileScreen(
             // Menu Section
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(20.dp), spotColor = Color.LightGray),
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {
                     ProfileMenuItem(
@@ -266,13 +259,6 @@ fun ProfileScreen(
                         title = "Addresses",
                         subtitle = "Manage your saved addresses",
                         onClick = onNavigateToAddresses
-                    )
-                    ProfileMenuDivider()
-                    ProfileMenuItem(
-                        icon = Icons.AutoMirrored.Outlined.HelpOutline,
-                        title = "Help & Support",
-                        subtitle = "Get help and FAQs",
-                        onClick = onNavigateToHelp
                     )
                 }
             }
@@ -341,19 +327,19 @@ private fun ProfileMenuItem(
                 title, 
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A1A)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
             Text(
                 subtitle,
-                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
             )
         }
         
         Icon(
             imageVector = Icons.Outlined.ChevronRight,
             contentDescription = null,
-            tint = Color(0xFFBBBBBB),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
             modifier = Modifier.size(20.dp)
         )
     }
@@ -364,6 +350,6 @@ private fun ProfileMenuDivider() {
     HorizontalDivider(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         thickness = 1.dp,
-        color = Color(0xFFF5F5F5)
+        color = MaterialTheme.colorScheme.outlineVariant
     )
 }
