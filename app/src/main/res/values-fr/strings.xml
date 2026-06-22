@@ -73,6 +73,8 @@
     <string name="write_a_review">Écrire un avis</string>
     <string name="comment">Commentaire</string>
     <string name="submit">Envoyer</string>
+    <string name="verified_purchase_reviews">Les avis proviennent d\'achats vérifiés.</string>
+    <string name="only_verified_purchasers_can_review">Seuls les clients ayant commandé ce produit peuvent laisser un avis.</string>
     <string name="no_reviews_yet">Aucun avis pour le moment.</string>
     <string name="out_of_stock">Rupture de stock</string>
     <string name="only_left">Plus que %1$d restants !</string>
