@@ -12,4 +12,5 @@ data class Review(
     val comment: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
+    val reviewerName: String? = null,
 )
