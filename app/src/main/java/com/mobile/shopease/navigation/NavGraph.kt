@@ -119,11 +119,59 @@ fun NavGraph(
         }
 
         composable(Screen.MyOrders.route) {
-            MyOrdersScreen(onBack = { navController.popBackStack() })
+            MyOrdersScreen(
+                onBack = { navController.popBackStack() },
+                onOrderClicked = { orderId ->
+                    navController.navigate(Screen.OrderDetails.createRoute(orderId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.OrderDetails.route,
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: return@composable
+            OrderDetailsScreen(
+                orderId = orderId,
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToLanguage = { navController.navigate(Screen.Language.route) },
+                onNavigateToCurrency = { navController.navigate(Screen.Currency.route) },
+                onNavigateToPrivacy = { navController.navigate(Screen.PrivacyPolicy.route) },
+                onNavigateToTerms = { navController.navigate(Screen.TermsOfService.route) },
+                onNavigateToHelp = { navController.navigate(Screen.HelpCenter.route) },
+                onAccountDeleted = {
+                    navController.navigate(Screen.SignIn.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Language.route) {
+            LanguageScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Currency.route) {
+            CurrencyScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.TermsOfService.route) {
+            TermsOfServiceScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.HelpCenter.route) {
+            HelpCenterScreen(onBack = { navController.popBackStack() })
         }
     }
 }
