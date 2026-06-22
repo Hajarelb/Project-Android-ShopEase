@@ -59,4 +59,18 @@ class OrderRepository {
             }
             .decodeList<Order>()
     }
+
+    suspend fun getOrderById(orderId: String): Order {
+        return SupabaseClient.client.postgrest["orders"]
+            .select { filter { eq("id", orderId) } }
+            .decodeSingle<Order>()
+    }
+
+    suspend fun getOrderItems(orderId: String): List<OrderItem> {
+        return SupabaseClient.client.postgrest["order_items"]
+            .select(columns = io.github.jan.supabase.postgrest.query.Columns.raw("*, products(*)")) {
+                filter { eq("order_id", orderId) }
+            }
+            .decodeList<OrderItem>()
+    }
 }
