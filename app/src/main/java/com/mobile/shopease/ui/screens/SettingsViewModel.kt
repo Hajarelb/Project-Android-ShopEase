@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.mobile.shopease.data.UserPreferences
+import com.mobile.shopease.data.remote.SupabaseClient
+import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -19,9 +21,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val notifications: StateFlow<Boolean> = prefs.notifications
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
-    val biometric: StateFlow<Boolean> = prefs.biometric
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
     fun setDarkMode(enabled: Boolean) {
         viewModelScope.launch { prefs.setDarkMode(enabled) }
     }
@@ -30,7 +29,23 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch { prefs.setNotifications(enabled) }
     }
 
-    fun setBiometric(enabled: Boolean) {
-        viewModelScope.launch { prefs.setBiometric(enabled) }
+    fun deleteAccount(onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                // 1. Clear cart
+                val cartRepo = com.mobile.shopease.data.repository.CartRepository()
+                try { cartRepo.clearCart() } catch (e: Exception) { /* ignore if fails */ }
+
+                // 2. Clear local preferences
+                prefs.clearAll()
+
+                // 3. Sign out from Supabase
+                SupabaseClient.client.auth.signOut()
+
+                onComplete(true)
+            } catch (e: Exception) {
+                onComplete(false)
+            }
+        }
     }
 }

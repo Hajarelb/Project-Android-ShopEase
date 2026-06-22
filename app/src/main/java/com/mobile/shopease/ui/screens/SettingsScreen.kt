@@ -27,15 +27,33 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onNavigateToLanguage: () -> Unit,
+    onNavigateToCurrency: () -> Unit,
     onNavigateToPrivacy: () -> Unit,
     onNavigateToTerms: () -> Unit,
     onNavigateToHelp: () -> Unit,
     onAccountDeleted: () -> Unit,
-    viewModel: SettingsViewModel = viewModel()
+    viewModel: SettingsViewModel = viewModel(),
+    localizationViewModel: LocalizationViewModel = viewModel()
 ) {
     val darkMode by viewModel.darkMode.collectAsState()
     val notifications by viewModel.notifications.collectAsState()
+    val currentLanguage by localizationViewModel.language.collectAsState()
+    val currentCurrency by localizationViewModel.currency.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+
+    val languageDisplay = when (currentLanguage) {
+        "en" -> "English (US)"
+        "fr" -> "French (France)"
+        else -> "English (US)"
+    }
+
+    val currencyDisplay = when (currentCurrency) {
+        "usd" -> "USD ($)"
+        "eur" -> "EUR (€)"
+        "gbp" -> "GBP (£)"
+        else -> "USD ($)"
+    }
 
     // Delete account confirmation dialog
     if (showDeleteDialog) {
@@ -136,15 +154,15 @@ fun SettingsScreen(
                 SettingsNavigationRow(
                     icon = Icons.Outlined.Language,
                     title = "Language",
-                    subtitle = "English (US)",
-                    onClick = { /* future: i18n screen */ }
+                    subtitle = languageDisplay,
+                    onClick = onNavigateToLanguage
                 )
                 SettingsDivider()
                 SettingsNavigationRow(
                     icon = Icons.Outlined.AttachMoney,
                     title = "Currency",
-                    subtitle = "USD ($)",
-                    onClick = { /* future */ }
+                    subtitle = currencyDisplay,
+                    onClick = onNavigateToCurrency
                 )
             }
 
